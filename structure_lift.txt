@@ -1,0 +1,31 @@
+lift
+	header
+		ranges
+			*range {id, href}
+		fields
+			*field {tag}
+				form {lang}
+					text
+	*entry {id, dateCreated, dateModified, guid}
+		lexical-unit
+			form {lang}
+				text
+		trait {name, value}
+		pronounciation
+			form {lang}
+				text
+		+sense {id}
+			*gloss {lang}
+				text
+			+definition
+				form {lang}
+					text
+			*example
+				form {lang}
+					text
+				*translation
+					*form {lang}
+						text
+			*field {type={syn, ant}}
+				form {lang}
+					text
