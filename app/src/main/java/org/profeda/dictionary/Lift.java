@@ -31,22 +31,6 @@ public class Lift {
     @Attribute
     public String version;
 
-    // Returns the full name of the language
-    public static String langToFull(String lang) {
-        switch (lang) {
-            case "tuq":
-                return "Tudaga";
-            case "ayl":
-                return "عربي";
-            case "fr":
-                return "Français";
-            case "en":
-                return "English";
-            default:
-                return lang;
-        }
-    }
-
     // Searches the lift-file in the local directory - only
     // usable for debugging purposes!
     public static Lift ReadLift(String name) throws Exception {
@@ -61,6 +45,16 @@ public class Lift {
     public static Lift ReadLift(InputStream source) throws Exception {
         Serializer serializer = new Persister();
         return serializer.read(Lift.class, source);
+    }
+
+    // Searches for an entry with id
+    public Entry findById(String id){
+        for (Entry e: entry){
+            if (e.id.equals(id)){
+                return e;
+            }
+        }
+        return null;
     }
 
     @Root
@@ -117,6 +111,11 @@ public class Lift {
         public List<Sense> sense;
         @ElementList(inline = true, required = false)
         public List<Relation> relation;
+
+        // Returns the original string
+        public String getOriginal(){
+            return lexicalUnit.form.text.text;
+        }
 
         // Searches for the gloss
         public String getGloss(String translation) {
@@ -214,6 +213,22 @@ public class Lift {
         // Returns the antonym or null if none
         public String getAntonym() {
             return getField("ant");
+        }
+
+        // Returns the cross-references or null if none
+        public List<String> getCross(Lift lift){
+            List<String> defs = new ArrayList<String>();
+            if (relation != null && relation.size() > 0) {
+                for (Relation r : relation) {
+                    if (r.ref != null) {
+                        Entry rel = lift.findById(r.ref);
+                        if (rel != null) {
+                            defs.add(rel.getOriginal());
+                        }
+                    }
+                }
+            }
+            return defs;
         }
 
         @Root

@@ -23,7 +23,8 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="---:"
                 android:id="@+id/tvLangSrc"
-                android:textColor="#ffffff" />
+                android:textColor="#ffffff"
+                android:onClick="changeTranslationDirectionSearchList" />
 
             <EditText
                 android:layout_width="match_parent"
@@ -43,7 +44,8 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:id="@+id/tvLangSrcRtL"
-                android:textColor="#ffffff" />
+                android:textColor="#ffffff"
+                android:onClick="changeTranslationDirectionSearchList" />
 
             <Button
                 style="?android:attr/buttonStyleSmall"
@@ -62,14 +64,17 @@
             android:text="Destination language"
             android:id="@+id/tvLangDst"
             android:textColor="#ffffff"
-            android:gravity="center" />
+            android:gravity="center"
+            android:onClick="changeTranslationDirectionSearchList" />
 
         <ListView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/translations"
             android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:clickable="true"
+            android:choiceMode="none" />
     </LinearLayout>
 
 

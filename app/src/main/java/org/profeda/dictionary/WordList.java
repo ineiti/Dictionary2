@@ -8,14 +8,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 /**
  * Created by ineiti on 19/10/2015.
@@ -31,11 +29,21 @@ public class WordList {
     // This holds a list of all translations from source-language to the destination
     // languages, one map-entry per destination language
     Map<String, SortedMap<String, LiftCache>> TranslationList;
-    Map<String, SortedMap<String, String>> BackTranslationList;
+    // First entry is language, then a triple of
+    // DeAccentized word, BackTrans
+    public static class BackTrans{
+        public String BackOriginal;
+        public String Source;
+        public BackTrans(String bo, String src){
+            this.BackOriginal = bo;
+            this.Source = src;
+        }
+    }
+    Map<String, SortedMap<String, BackTrans>> BackTranslationList;
     // Create a version-int out of major, minor and patch
-    public static int versionMajor = 0;
-    public static int versionMinor = 3;
-    public static int versionPatch = 2;
+    public static int versionMajor = 1;
+    public static int versionMinor = 4;
+    public static int versionPatch = 0;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
     // If versionTest is > 0, then this version is used when writing
@@ -107,11 +115,12 @@ public class WordList {
             SortedMap<String, LiftCache> tle = new TreeMap<>();
             for (Lift.Entry e : lift.entry) {
                 if (e.lexicalUnit != null) {
-                    String src = WordList.deAccent(e.lexicalUnit.form.text.text);
+                    String src = Language.deAccent(e.lexicalUnit.form.text.text);
+                    // Hack to add multiple definitions by adding spaces
                     while (tle.containsKey(src)) {
                         src += " ";
                     }
-                    tle.put(src, new LiftCache(e, lang));
+                    tle.put(src, new LiftCache(e, lift, lang));
                 }
             }
             TranslationList.put(lang, tle);
@@ -125,20 +134,23 @@ public class WordList {
         // First set up the BackTranslationList with one Treemap per destination language
         BackTranslationList = new HashMap<>();
         for (String lang : Languages) {
-            System.out.println("Setting up backtranslation for " + lang);
-            BackTranslationList.put(lang, new TreeMap<String, String>());
+            BackTranslationList.put(lang, new TreeMap<String, BackTrans>());
         }
 
         // Now iterate over all languages and add all words to the backtranslation
         for (String lang : Languages) {
+            System.out.println("Setting up backtranslation for " + lang);
             SortedMap<String, LiftCache> tl = TranslationList.get(lang);
-            SortedMap<String, String> bt = BackTranslationList.get(lang);
+            SortedMap<String, BackTrans> bt = BackTranslationList.get(lang);
             for (String wordSource : tl.keySet()) {
-                String wordDest = tl.get(wordSource).Gloss;
+                String wordDest = Language.deAccent(tl.get(wordSource).Gloss);
+                // Hack to add multiple definitions by adding spaces
                 while (bt.containsKey(wordDest)) {
                     wordDest += " ";
                 }
-                bt.put(wordDest, tl.get(wordSource).Original);
+                BackTrans backtr = new BackTrans(tl.get(wordSource).Gloss,
+                        tl.get(wordSource).Original);
+                bt.put(wordDest, backtr);
             }
         }
     }
@@ -173,7 +185,7 @@ public class WordList {
     // language 'dest' for all /^#{search}*/
     // Returns a map of words with LiftCaches
     public Map<String, LiftCache> searchWord(String searchOrig, String dest) {
-        String search = WordList.deAccent(searchOrig);
+        String search = Language.deAccent(searchOrig);
         Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
         SortedMap<String, LiftCache> tl = TranslationList.get(dest);
         if (tl == null) {
@@ -188,18 +200,18 @@ public class WordList {
     }
 
     // Searches a word from the source-language and returns the destination
-    // language 'dest' for all /^#{search}*/
+    // language 'dest' for all /\b#{search}\b*/
     // Returns a map of words with LiftCaches
     public Map<String, LiftCache> searchExamples(String searchOrig, String dest) {
-        String search = WordList.deAccent(searchOrig);
+        String search = Language.deAccent(searchOrig);
         Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
 
         String regex = ".*\\b" + search + "\\b.*";
         for (Map.Entry<String, LiftCache> entry :
                 TranslationList.get(dest).entrySet()) {
             for (Lift.Example ex : entry.getValue().Examples) {
-                System.out.println("   " + WordList.deAccent(ex.Example));
-                if (WordList.deAccent(ex.Example).matches(regex)) {
+                System.out.println("   " + Language.deAccent(ex.Example));
+                if (Language.deAccent(ex.Example).matches(regex)) {
                     result.put(entry.getKey(), entry.getValue());
                 }
             }
@@ -209,9 +221,9 @@ public class WordList {
 
     // Searches a word from the dest-language and returns the source-
     // language for all /#{search}*/
-    public Map<String, String> searchWordSource(String searchOrig, String source) {
-        String search = WordList.deAccent(searchOrig);
-        SortedMap<String, String> list = BackTranslationList.get(source);
+    public Map<String, BackTrans> searchWordSource(String searchOrig, String source) {
+        String search = Language.deAccent(searchOrig);
+        SortedMap<String, BackTrans> list = BackTranslationList.get(source);
         if (list == null) {
             Log.i("searchWordSource", "searching on null list " + source);
             return null;
@@ -244,17 +256,9 @@ public class WordList {
         return Languages;
     }
 
-    public static String deAccent(String str) {
-        String nfdNormalizedString = Normalizer.normalize(str.toLowerCase(), Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        String ret = pattern.matcher(nfdNormalizedString).replaceAll("");
-        ret = ret.replaceAll("[()]", "");
-        return ret.replaceAll("ŋ", "n");
-    }
-
     // Returns the full name of the language
     public static String langToFull(String lang) {
-        return Lift.langToFull(lang);
+        return Language.langToFull(lang);
     }
 
     // Checks if any Right-to-Left characters are present

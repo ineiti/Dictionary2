@@ -9,23 +9,22 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class Translate extends AppCompatActivity {
-    WordList wordList;
+    public static WordList wordList;
     Boolean toasting;
     TextView etSearch;
     TextView tvLangSrc;
@@ -35,10 +34,13 @@ public class Translate extends AppCompatActivity {
     ProgressDialog loadingDialog;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
+    List<String> searchResultString;
+    List<LiftCache> searchResultLiftCache;
 
     // Menu-id of the language-choice
     int LangId;
     static int menuLanguage = 1;
+    static int WORD_DETAIL_RESULT = 1;
 
 
     @Override
@@ -61,7 +63,51 @@ public class Translate extends AppCompatActivity {
         new LoadBackground().execute(liftFile);
         toasting = false;
         setKeyListener();
+        setListItemListener();
         Log.i("oncreate", "finished");
+    }
+
+    // Sets up a listener for the ListView. If it's translating FROM the main language,
+    // it presents details, else it changes the translation direction
+    private void setListItemListener() {
+        lvTranslations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView parentView, View childView,
+                                    int position, long id) {
+                Log.i("soicl", "fired for position " + String.valueOf(position));
+                if (LangId >= wordList.Languages.size()) {
+                    String text = searchResultString.get(position);
+                    Log.i("showDetailText", text);
+                    changeTranslationDirectionSearchList(null);
+                    etSearch.setText(text);
+                    showSearch();
+                } else {
+                    LiftCache lc = searchResultLiftCache.get(position);
+                    Log.i("showDetailLC", lc.Original);
+                    Intent intent = new Intent(getBaseContext(), WordDetail.class);
+                    intent.putExtra("EXTRA_LIFTCACHE", lc);
+                    intent.putExtra("EXTRA_DEST", getLangDest(LangId));
+                    intent.putExtra("EXTRA_ENTRIES", Language.uiTranslations(getLangDest(LangId)));
+                    startActivityForResult(intent, WORD_DETAIL_RESULT);
+                }
+            }
+        });
+    }
+
+    // Upon clicking a word in the result page, we will search
+    // for that word - either in the source or in the destination
+    // langauge, depending on "inverseSearch"
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
+        if (requestCode == WORD_DETAIL_RESULT) {
+            if (resultCode == RESULT_OK) {
+                String search = data.getStringExtra("searchValue");
+                if (data.getBooleanExtra("inverseSearch", false)) {
+                    changeTranslationDirection(search);
+                } else {
+                    showSearch(search);
+                }
+            }
+        }
     }
 
     // Launches a search for each keypress and disables enter key
@@ -69,6 +115,7 @@ public class Translate extends AppCompatActivity {
         etSearch.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
+                Log.i("KeyListener:", String.valueOf(keyCode));
                 showSearch();
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_ENTER:
@@ -79,42 +126,24 @@ public class Translate extends AppCompatActivity {
         });
     }
 
-    // Converts a list of strings to a numbered list if there are
-    // more than 1 entries, else shows only the single entry. If
-    // no entry is present, shows the alternative text or nothing
-    // if that one is emtpy
-    public String concatList(List<String> entries, String alternative) {
-        ArrayList<String> ret = new ArrayList<>();
-        if (entries.size() == 0) {
-            if (alternative != null && alternative != "") {
-                ret.add(alternative);
-            }
-        } else if (entries.size() == 1) {
-            ret.add(entries.get(0));
-        } else {
-            int nbr = 1;
-            for (String e : entries) {
-                ret.add(String.valueOf(nbr) + ": " + e);
-                nbr++;
-            }
-        }
-        return TextUtils.join("\n", ret);
-    }
-
     // Searches for the text in etSearch and displays it in the list
     // lvTranslations
     public void showSearch() {
         String word = etSearch.getText().toString();
+        Log.i("showSearch", word);
+        searchResultLiftCache = new ArrayList<LiftCache>();
+        searchResultString = new ArrayList<>();
         ArrayList<TranslationItem> resultList = new ArrayList<TranslationItem>();
 
         if (word.length() > 0) {
             if (LangId >= wordList.Languages.size()) {
-                Map<String, String> result = wordList.searchWordSource(word, getLangSource(LangId));
+                Map<String, WordList.BackTrans> result = wordList.searchWordSource(word, getLangSource(LangId));
                 if (result != null) {
-                    for (Map.Entry<String, String> tr : result.entrySet()) {
+                    for (Map.Entry<String, WordList.BackTrans> tr : result.entrySet()) {
+                        searchResultString.add(tr.getValue().Source);
                         TranslationItem newsData = new TranslationItem();
-                        newsData.source = tr.getKey();
-                        newsData.translation = tr.getValue();
+                        newsData.source = tr.getValue().BackOriginal;
+                        newsData.translation = tr.getValue().Source;
                         resultList.add(newsData);
                     }
                 }
@@ -123,16 +152,11 @@ public class Translate extends AppCompatActivity {
                 if (result != null) {
                     for (Map.Entry<String, LiftCache> tr : result.entrySet()) {
                         LiftCache lc = tr.getValue();
+                        searchResultLiftCache.add(lc);
                         TranslationItem newsData = new TranslationItem();
                         newsData.source = lc.Original;
-                        newsData.translation = concatList(lc.Definitions,
-                                lc.Gloss);
-
-                        List<String> examples = new ArrayList<String>();
-                        for (Lift.Example ex: lc.Examples) {
-                            examples.add(ex.Example + " -> " + ex.Translation);
-                        }
-                        newsData.example = concatList(examples, null);
+                        newsData.translation = lc.TranslationString();
+                        newsData.example = lc.ExamplesString();
                         resultList.add(newsData);
                     }
                 }
@@ -142,15 +166,16 @@ public class Translate extends AppCompatActivity {
         }
         lvTranslations.setAdapter(new TranslationListView(this, resultList));
     }
-
-    public void deleteSearch(View b) {
-        etSearch.setText("");
+    // Sets the search field and searches for that one
+    public void showSearch(String text){
+        Log.i("showSearchT", text);
+        etSearch.setText(text);
         showSearch();
     }
 
-    public void showDetail(View b) {
-        Intent intent = new Intent(this, WordDetail.class);
-        startActivity(intent);
+    // Cleans the search field
+    public void deleteSearch(View b) {
+        showSearch("");
     }
 
     // Loads the lift-database in the background and dismisses the progressdialog
@@ -188,7 +213,7 @@ public class Translate extends AppCompatActivity {
         LangId = id;
         String source = getLangSource(id);
         String dest = getLangDest(id);
-        String src = WordList.langToFull(source) + ": ";
+        String src = Language.langToFull(source) + ": ";
         String srcRtL = "";
         if (WordList.hasRightToLeft(src)) {
             srcRtL = src;
@@ -196,7 +221,7 @@ public class Translate extends AppCompatActivity {
         }
         tvLangSrc.setText(src);
         tvLangSrcRtL.setText(srcRtL);
-        tvLangDst.setText(WordList.langToFull(dest));
+        tvLangDst.setText(Language.langToFull(dest));
         editor.putInt("LangId", id);
         editor.commit();
         showSearch();
@@ -231,6 +256,7 @@ public class Translate extends AppCompatActivity {
     }
     */
 
+    // Sets up the menu with a list of translation-directions
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         Log.i("menu", "prepareoptions");
@@ -239,8 +265,8 @@ public class Translate extends AppCompatActivity {
             // Offer the translation FROM the base-language to the other languages,
             // then the other way around.
             for (int index = 0; index < wordList.Languages.size() * 2; index++) {
-                String langstr = WordList.langToFull(getLangSource(index)) + " -> " +
-                        WordList.langToFull(getLangDest(index));
+                String langstr = Language.langToFull(getLangSource(index)) + " -> " +
+                        Language.langToFull(getLangDest(index));
                 menu.add(menuLanguage, index + 1, index + 1, langstr);
             }
         }
@@ -275,5 +301,28 @@ public class Translate extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // Inverts source- and destination language
+    public void changeTranslationDirection(String search) {
+        int size = wordList.Languages.size();
+        setLanguages((LangId + size) % (2 * size));
+        showSearch(search);
+    }
+
+    // Inverts the source- and destination- language and starts a new
+    // search with the first result of the list
+    public void changeTranslationDirectionSearchList(View v) {
+        String search = "";
+        if (LangId >= wordList.Languages.size()) {
+            if (searchResultString != null && searchResultString.size() > 0){
+                search = searchResultString.get(0);
+            }
+        } else {
+            if (searchResultLiftCache != null && searchResultLiftCache.size() > 0){
+                search = searchResultLiftCache.get(0).Gloss;
+            }
+        }
+        changeTranslationDirection(search);
     }
 }
