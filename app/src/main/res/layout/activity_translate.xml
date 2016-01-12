@@ -30,12 +30,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/etSearch"
-                android:editable="true"
                 android:hint="Search"
                 android:textColor="#ffffff"
                 android:background="#555555"
                 android:layout_weight="1"
-                android:autoText="false"
                 android:maxLines="1"
                 android:inputType="textNoSuggestions" />
 
@@ -45,6 +43,7 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:id="@+id/tvLangSrcRtL"
                 android:textColor="#ffffff"
+                android:clickable="true"
                 android:onClick="changeTranslationDirectionSearchList" />
 
             <Button
@@ -65,6 +64,7 @@
             android:id="@+id/tvLangDst"
             android:textColor="#ffffff"
             android:gravity="center"
+            android:clickable="true"
             android:onClick="changeTranslationDirectionSearchList" />
 
         <ListView

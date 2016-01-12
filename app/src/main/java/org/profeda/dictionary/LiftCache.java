@@ -16,6 +16,11 @@ import java.util.Map;
  */
 public class LiftCache implements Serializable {
     private static final long serialVersionUID = 3141592657316227L;
+    // If Full is non-null, it points to the entry where this sub-text
+    // has been taken. I.e. "abi ndoduro" will create two entries: one
+    // full and one with "ndoduro", pointing to "abi ndoduro".
+    // These are called link-entries.
+    public String Full;
     // If we use a 'deAccent'ized map to point to here, we can
     // use this string to get back the original
     public String Original;
@@ -42,6 +47,11 @@ public class LiftCache implements Serializable {
             Antonym = e.getAntonym();
             Cross = e.getCross(lift);
         }
+    }
+
+    // This creates a LiftCache based on another LiftCache
+    public LiftCache(LiftCache lc) {
+        Full = Language.deAccent(lc.Original);
     }
 
     public String String() {
@@ -96,6 +106,7 @@ public class LiftCache implements Serializable {
         }
         return TextUtils.join("\n", ret);
     }
+
     public static String concatList(List<String> entries) {
         return concatList(entries, "");
     }
@@ -103,26 +114,34 @@ public class LiftCache implements Serializable {
 
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
-        out.writeObject(Original);
-        out.writeObject(Gloss);
-        out.writeObject(Pronunciation);
-        out.writeObject(Definitions);
-        out.writeObject(Examples);
-        out.writeObject(Synonym);
-        out.writeObject(Antonym);
-        out.writeObject(Cross);
+        out.writeObject(Full);
+        if (Full == null) {
+            // Only write other fields if it's not a link-entry
+            out.writeObject(Original);
+            out.writeObject(Gloss);
+            out.writeObject(Pronunciation);
+            out.writeObject(Definitions);
+            out.writeObject(Examples);
+            out.writeObject(Synonym);
+            out.writeObject(Antonym);
+            out.writeObject(Cross);
+        }
     }
 
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
-        Original = (String) in.readObject();
-        Gloss = (String) in.readObject();
-        Pronunciation = (String) in.readObject();
-        Definitions = (List<String>) in.readObject();
-        Examples = (List<Lift.Example>) in.readObject();
-        Synonym = (String) in.readObject();
-        Antonym = (String) in.readObject();
-        Cross = (List<String>) in.readObject();
+        Full = (String) in.readObject();
+        if (Full == null) {
+            // Only read other fields if it's not a link-entry
+            Original = (String) in.readObject();
+            Gloss = (String) in.readObject();
+            Pronunciation = (String) in.readObject();
+            Definitions = (List<String>) in.readObject();
+            Examples = (List<Lift.Example>) in.readObject();
+            Synonym = (String) in.readObject();
+            Antonym = (String) in.readObject();
+            Cross = (List<String>) in.readObject();
+        }
     }
 
     private void readObjectNoData()

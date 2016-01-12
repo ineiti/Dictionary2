@@ -1,6 +1,6 @@
 package org.profeda.dictionary;
 
-import org.junit.Test;
+import android.test.suitebuilder.annotation.SmallTest;
 
 import java.io.File;
 import java.util.Arrays;
@@ -9,19 +9,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-
 /**
  * Created by ineiti on 11/09/2015.
  */
+@SmallTest
 public class LiftTest {
     public WordList wordList;
     private String liftName = "teda-fr-en-ar.lift";
     private String cacheName = "src/main/assets/teda.cache";
 
-    @Test
+    
     public void testLiftLoad() throws Exception {
         loadWholeFile();
         System.out.println("File is loaded");
@@ -32,7 +29,7 @@ public class LiftTest {
         assert (wordList.versionId == 0x10400);
     }
 
-    @Test
+    
     public void testLoadAndSearchWord() throws Exception {
         loadWholeFile();
         searchWord();
@@ -53,14 +50,14 @@ public class LiftTest {
         }
     }
 
-    @Test
+    
     public void testLanguages() throws Exception {
         wordList = new WordList("test-languages-1.lift");
         System.out.println(wordList.Languages);
         assert (wordList.Languages.size() == 3);
     }
 
-    @Test
+    
     public void testCacheWrite() throws Exception {
         File f = new File(cacheName);
         f.delete();
@@ -70,14 +67,14 @@ public class LiftTest {
         assert (f.exists());
     }
 
-    @Test
+    
     public void testCacheRead() throws Exception {
         testCacheWrite();
         assert (wordList.LoadCache(cacheName));
         searchWord();
     }
 
-    @Test
+    
     public void testVersionMismatch() throws Exception {
         loadWholeFile();
         wordList.versionTest = 2;
@@ -85,7 +82,7 @@ public class LiftTest {
         assert (!wordList.LoadCache(cacheName));
     }
 
-    @Test
+    
     public void testDefinitions() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("borsu", "en");
@@ -93,7 +90,7 @@ public class LiftTest {
         assert (result.get("borsu").Definitions.size() == 2);
     }
 
-    @Test
+    
     public void testDeAccent() throws Exception {
         loadWholeFile();
 
@@ -106,7 +103,7 @@ public class LiftTest {
         assert (ret.equals("hellothere"));
     }
 
-    @Test
+    
     public void testMultiDest() throws Exception {
         loadWholeFile();
 
@@ -120,7 +117,7 @@ public class LiftTest {
         assert (old.size() == 2);
     }
 
-    @Test
+    
     public void testMultiSource() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> fromTudaga1 = wordList.searchWord("bidi", "en");
@@ -133,7 +130,7 @@ public class LiftTest {
         assert (fromTudaga1.size() == 4);
     }
 
-    @Test
+    
     public void testSearchExample() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchExamples("huna", "en");
@@ -145,7 +142,7 @@ public class LiftTest {
         assert (result.size() == 25);
     }
 
-    @Test
+    
     public void testLearnRegexp() {
         String src1 = "1: english words\n2: more words";
         String src2 = "more words";
@@ -156,7 +153,7 @@ public class LiftTest {
         System.out.println(m1.group(2));
     }
 
-    @Test
+    
     public void testArabic() throws Exception{
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("abba", "ayl");
@@ -172,7 +169,7 @@ public class LiftTest {
         System.out.println();
     }
 
-    @Test
+    
     public void testArabic2() throws Exception{
         loadWholeFile();
         String search1 = "اب";

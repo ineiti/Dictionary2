@@ -38,8 +38,10 @@ public class WordDetail extends AppCompatActivity {
         entries = (HashMap<String, String>) bundle.get("EXTRA_ENTRIES");
         Log.i("WordDetail", liftCache.toString());
         ((TextView) findViewById(R.id.tvWDTitle)).setText(liftCache.Original);
+        /*
         setEntry(R.id.trPhon, R.id.tvPhon, R.id.tvPhonText,
                 "Pronunciation", liftCache.Pronunciation);
+                */
         setEntry(R.id.trDefinition, R.id.tvDefinition, R.id.tvDefinitionText,
                 "Definitions", liftCache.TranslationString());
         setEntry(R.id.trExample, R.id.tvExample, R.id.tvExampleText,

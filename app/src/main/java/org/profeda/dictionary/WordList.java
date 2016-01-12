@@ -5,9 +5,11 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,18 +33,32 @@ public class WordList {
     Map<String, SortedMap<String, LiftCache>> TranslationList;
     // First entry is language, then a triple of
     // DeAccentized word, BackTrans
-    public static class BackTrans{
+    public static class BackTrans implements Serializable{
+        private static final long serialVersionUID = 3141592657316228L;
         public String BackOriginal;
         public String Source;
         public BackTrans(String bo, String src){
             this.BackOriginal = bo;
             this.Source = src;
         }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws IOException {
+            out.writeObject(BackOriginal);
+            out.writeObject(Source);
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws IOException, ClassNotFoundException {
+            BackOriginal = (String) in.readObject();
+            Source = (String) in.readObject();
+        }
+
     }
     Map<String, SortedMap<String, BackTrans>> BackTranslationList;
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
-    public static int versionMinor = 4;
+    public static int versionMinor = 6;
     public static int versionPatch = 0;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
@@ -95,12 +111,22 @@ public class WordList {
                 TranslationList = (Map<String, SortedMap<String, LiftCache>>) ois.readObject();
                 LanguageBase = (String) ois.readObject();
                 Languages = (List<String>) ois.readObject();
+                BackTranslationList = (Map<String, SortedMap<String, BackTrans>>)ois.readObject();
                 ois.close();
-                SetupBackTranslation();
                 return true;
             }
         }
         return false;
+    }
+
+    // Adds an entry to the liftcache-list, appending spaces to already available
+    // entries
+    public void AddEntry(SortedMap<String, LiftCache> tle, String src, LiftCache lc){
+        // Hack to add multiple definitions by adding spaces
+        while (tle.containsKey(src)) {
+            src += " ";
+        }
+        tle.put(src, lc);
     }
 
     // Setting up the TranslationList
@@ -116,11 +142,17 @@ public class WordList {
             for (Lift.Entry e : lift.entry) {
                 if (e.lexicalUnit != null) {
                     String src = Language.deAccent(e.lexicalUnit.form.text.text);
-                    // Hack to add multiple definitions by adding spaces
-                    while (tle.containsKey(src)) {
-                        src += " ";
+                    LiftCache lc = new LiftCache(e, lift, lang);
+                    AddEntry(tle, src, lc);
+
+                    // If we have spaces in the src, we will add multiple
+                    // entries which are linked to the main one
+                    if (src.contains(" ,")){
+                        String[] words = src.split("[ ,]");
+                        for (int i = 1; i < words.length; i++){
+                            AddEntry(tle, words[i], new LiftCache(lc));
+                        }
                     }
-                    tle.put(src, new LiftCache(e, lift, lang));
                 }
             }
             TranslationList.put(lang, tle);
@@ -169,6 +201,7 @@ public class WordList {
         oos.writeObject(TranslationList);
         oos.writeObject(LanguageBase);
         oos.writeObject(getLanguages());
+        oos.writeObject(BackTranslationList);
         oos.close();
     }
 

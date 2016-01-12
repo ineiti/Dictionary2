@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -124,6 +126,24 @@ public class Translate extends AppCompatActivity {
                 return false;
             }
         });
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0){
+                    showSearch();
+                }
+            }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+                // TODO Auto-generated method stub
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                // TODO Auto-generated method stub
+
+            }
+        });
     }
 
     // Searches for the text in etSearch and displays it in the list
@@ -202,7 +222,7 @@ public class Translate extends AppCompatActivity {
             LangId = sharedPref.getInt("LangId", 0);
             setLanguages(LangId);
             invalidateOptionsMenu();
-            Log.i("loadgin", "postexecute");
+            Log.i("loading", "postexecute");
         }
     }
 
@@ -313,6 +333,7 @@ public class Translate extends AppCompatActivity {
     // Inverts the source- and destination- language and starts a new
     // search with the first result of the list
     public void changeTranslationDirectionSearchList(View v) {
+        Log.i("changeDirection", String.valueOf(LangId));
         String search = "";
         if (LangId >= wordList.Languages.size()) {
             if (searchResultString != null && searchResultString.size() > 0){
