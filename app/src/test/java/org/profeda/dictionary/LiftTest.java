@@ -2,6 +2,8 @@ package org.profeda.dictionary;
 
 import android.test.suitebuilder.annotation.SmallTest;
 
+import org.junit.Test;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -12,13 +14,12 @@ import java.util.regex.Pattern;
 /**
  * Created by ineiti on 11/09/2015.
  */
-@SmallTest
 public class LiftTest {
     public WordList wordList;
     private String liftName = "teda-fr-en-ar.lift";
     private String cacheName = "src/main/assets/teda.cache";
 
-    
+    @Test
     public void testLiftLoad() throws Exception {
         loadWholeFile();
         System.out.println("File is loaded");
@@ -26,13 +27,45 @@ public class LiftTest {
         System.out.println("WordList version " + wordList.versionId);
         System.out.println(wordList.lift.entry.get(0).sense.get(0).gloss.get(1).lang);
         assert (wordList.lift.version.equals("0.13"));
-        assert (wordList.versionId == 0x10400);
+        assert (wordList.versionId == 0x10700);
     }
 
-    
+
+    @Test
     public void testLoadAndSearchWord() throws Exception {
         loadWholeFile();
         searchWord();
+    }
+
+    @Test
+    public void testSearch() throws Exception{
+        loadWholeFile();
+        List<String> translations = Arrays.asList("a", "kirki", "kubo turti");
+
+        for (String s : translations) {
+            Map<String, LiftCache> e = wordList.searchWord(s, "en");
+            assert (e.size() > 0);
+            for (Map.Entry<String, LiftCache> ent : e.entrySet()) {
+                System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
+            }
+        }
+    }
+
+    @Test
+    public void testSearch2() throws Exception{
+        loadWholeFile();
+        Map<String, LiftCache> result = wordList.searchWord("kirki", "en");
+        System.out.println(result.size());
+        assert(result.size() == 1);
+        for (Map.Entry<String, LiftCache> ent : result.entrySet()) {
+            System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
+        }
+        result = wordList.searchWord("a", "en");
+        System.out.println(result.size());
+        assert(result.size() == 1);
+        for (Map.Entry<String, LiftCache> ent : result.entrySet()) {
+            System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
+        }
     }
 
     public void searchWord() throws Exception {
@@ -44,20 +77,20 @@ public class LiftTest {
                 System.out.println("Didn't find " + s);
             } else {
                 for (Map.Entry<String, LiftCache> ent : e.entrySet()) {
-                    System.out.println(ent.getValue().Original + " means " + ent.getValue().Gloss);
+                    System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
                 }
             }
         }
     }
 
-    
+    @Test
     public void testLanguages() throws Exception {
         wordList = new WordList("test-languages-1.lift");
         System.out.println(wordList.Languages);
         assert (wordList.Languages.size() == 3);
     }
 
-    
+    @Test
     public void testCacheWrite() throws Exception {
         File f = new File(cacheName);
         f.delete();
@@ -67,14 +100,14 @@ public class LiftTest {
         assert (f.exists());
     }
 
-    
+    @Test
     public void testCacheRead() throws Exception {
         testCacheWrite();
         assert (wordList.LoadCache(cacheName));
         searchWord();
     }
 
-    
+    @Test
     public void testVersionMismatch() throws Exception {
         loadWholeFile();
         wordList.versionTest = 2;
@@ -82,20 +115,32 @@ public class LiftTest {
         assert (!wordList.LoadCache(cacheName));
     }
 
-    
+    @Test
     public void testDefinitions() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("borsu", "en");
-        System.out.println(result.get("borsu").Definitions);
-        assert (result.get("borsu").Definitions.size() == 2);
+        List<LiftCacheDefinition> s = result.get("borsu").Senses;
+        System.out.println(s.get(0).Definition);
+        System.out.println(s.get(1).Definition);
+        assert (s.get(0).Definition.equals("alone"));
+        assert (s.get(1).Definition.equals("only"));
     }
 
-    
+    @Test
+    public void testSenses() throws Exception {
+        loadWholeFile();
+        Map<String, LiftCache> result = wordList.searchWord("borsu", "en");
+        List<LiftCacheDefinition> s = result.get("borsu").Senses;
+        System.out.println(s);
+        assert (s.size() == 2);
+    }
+
+    @Test
     public void testDeAccent() throws Exception {
         loadWholeFile();
 
         Map<String, LiftCache> arabic = wordList.searchWord("aci", "ayl");
-        String arabic_str = arabic.get("aci").Gloss;
+        String arabic_str = arabic.get("aci").String();
         System.out.println(arabic_str);
         System.out.println(Language.deAccent(arabic_str));
 
@@ -103,7 +148,7 @@ public class LiftTest {
         assert (ret.equals("hellothere"));
     }
 
-    
+
     public void testMultiDest() throws Exception {
         loadWholeFile();
 
@@ -117,7 +162,7 @@ public class LiftTest {
         assert (old.size() == 2);
     }
 
-    
+
     public void testMultiSource() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> fromTudaga1 = wordList.searchWord("bidi", "en");
@@ -130,7 +175,7 @@ public class LiftTest {
         assert (fromTudaga1.size() == 4);
     }
 
-    
+
     public void testSearchExample() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchExamples("huna", "en");
@@ -142,7 +187,7 @@ public class LiftTest {
         assert (result.size() == 25);
     }
 
-    
+
     public void testLearnRegexp() {
         String src1 = "1: english words\n2: more words";
         String src2 = "more words";
@@ -153,12 +198,12 @@ public class LiftTest {
         System.out.println(m1.group(2));
     }
 
-    
-    public void testArabic() throws Exception{
+
+    public void testArabic() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("abba", "ayl");
         LiftCache abba = result.get("abba");
-        String arab = abba.Gloss;
+        String arab = abba.String();
         String search1 = "اب";
         String search2 = "أَبٌ";
 
@@ -169,8 +214,8 @@ public class LiftTest {
         System.out.println();
     }
 
-    
-    public void testArabic2() throws Exception{
+
+    public void testArabic2() throws Exception {
         loadWholeFile();
         String search1 = "اب";
         String search2 = "أَبٌ";

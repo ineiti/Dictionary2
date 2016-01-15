@@ -58,7 +58,7 @@ public class WordList {
     Map<String, SortedMap<String, BackTrans>> BackTranslationList;
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
-    public static int versionMinor = 6;
+    public static int versionMinor = 7;
     public static int versionPatch = 0;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
@@ -129,7 +129,8 @@ public class WordList {
         tle.put(src, lc);
     }
 
-    // Setting up the TranslationList
+    // Setting up the TranslationList - used when the cache is not here
+    // yet.
     public void InitLift(InputStream name) throws Exception {
         lift = Lift.ReadLift(name);
         if (lift == null) {
@@ -143,21 +144,12 @@ public class WordList {
                 if (e.lexicalUnit != null) {
                     String src = Language.deAccent(e.lexicalUnit.form.text.text);
                     LiftCache lc = new LiftCache(e, lift, lang);
-                    AddEntry(tle, src, lc);
-
-                    // If we have spaces in the src, we will add multiple
-                    // entries which are linked to the main one
-                    if (src.contains(" ,")){
-                        String[] words = src.split("[ ,]");
-                        for (int i = 1; i < words.length; i++){
-                            AddEntry(tle, words[i], new LiftCache(lc));
-                        }
-                    }
+                    tle.put(e.id, lc);
                 }
             }
             TranslationList.put(lang, tle);
         }
-        SetupBackTranslation();
+        //SetupBackTranslation();
     }
 
     // Copying TranslationList to BackTranslationList, so that we can
@@ -175,12 +167,12 @@ public class WordList {
             SortedMap<String, LiftCache> tl = TranslationList.get(lang);
             SortedMap<String, BackTrans> bt = BackTranslationList.get(lang);
             for (String wordSource : tl.keySet()) {
-                String wordDest = Language.deAccent(tl.get(wordSource).Gloss);
+                String wordDest = Language.deAccent(tl.get(wordSource).Senses.get(0).Gloss);
                 // Hack to add multiple definitions by adding spaces
                 while (bt.containsKey(wordDest)) {
                     wordDest += " ";
                 }
-                BackTrans backtr = new BackTrans(tl.get(wordSource).Gloss,
+                BackTrans backtr = new BackTrans(tl.get(wordSource).Senses.get(0).Gloss,
                         tl.get(wordSource).Original);
                 bt.put(wordDest, backtr);
             }
@@ -225,9 +217,14 @@ public class WordList {
             Log.i("searchWord", "Null-search" + search + " for language: " + dest);
         } else {
             Log.i("searchWord", search + " for language: " + dest);
-            for (Map.Entry<String, LiftCache> entry : filterPrefix(tl, search).entrySet()) {
-                result.put(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
+                if (entry.getValue().matches(search)){
+                    result.put(entry.getKey(), entry.getValue());
+                }
             }
+//            for (Map.Entry<String, LiftCache> entry : filterPrefix(tl, search).entrySet()) {
+//                result.put(entry.getKey(), entry.getValue());
+//            }
         }
         return result;
     }
@@ -242,7 +239,7 @@ public class WordList {
         String regex = ".*\\b" + search + "\\b.*";
         for (Map.Entry<String, LiftCache> entry :
                 TranslationList.get(dest).entrySet()) {
-            for (Lift.Example ex : entry.getValue().Examples) {
+            for (Lift.ExampleStr ex : entry.getValue().Senses.get(0).Examples) {
                 System.out.println("   " + Language.deAccent(ex.Example));
                 if (Language.deAccent(ex.Example).matches(regex)) {
                     result.put(entry.getKey(), entry.getValue());

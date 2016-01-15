@@ -48,9 +48,9 @@ public class Lift {
     }
 
     // Searches for an entry with id
-    public Entry findById(String id){
-        for (Entry e: entry){
-            if (e.id.equals(id)){
+    public Entry findById(String id) {
+        for (Entry e : entry) {
+            if (e.id.equals(id)) {
                 return e;
             }
         }
@@ -113,25 +113,8 @@ public class Lift {
         public List<Relation> relation;
 
         // Returns the original string
-        public String getOriginal(){
+        public String getOriginal() {
             return lexicalUnit.form.text.text;
-        }
-
-        // Searches for the gloss
-        public String getGloss(String translation) {
-            if (sense.size() > 0) {
-                for (Sense s : sense) {
-                    if (s.gloss != null) {
-                        for (Sense.Gloss g : s.gloss) {
-                            if (g.lang.equals(translation)) {
-                                return g.text.text;
-                            }
-                        }
-                    }
-                }
-            }
-            //System.out.println("Get gloss missing: " + translation + ":" + lexicalUnit.form.text.text);
-            return "";
         }
 
         // Searches for the pronunciation
@@ -144,91 +127,23 @@ public class Lift {
             return null;
         }
 
-        // Returns a list of definitions
-        public List<String> getDefinitions(String translation) {
-            List<String> defs = new ArrayList<String>();
-            if (sense.size() > 0) {
-                for (Sense s : sense) {
-                    if (s.definition != null) {
-                        for (Sense.Definition d : s.definition) {
-                            for (Form f : d.form) {
-                                if (f.lang.equals(translation)) {
-                                    defs.add(f.text.text);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return defs;
-        }
-
-        // Returns a list of Examples
-        public List<Example> getExamples(String translation) {
-            List<Example> ex = new ArrayList<Example>();
-            if (sense.size() > 0) {
-                for (Sense s : sense) {
-                    if (s.example != null) {
-                        for (Sense.Example e : s.example) {
-                            if (e != null && e.form != null) {
-                                if (e.translation == null) {
-                                    // Some examples don't have a translation
-                                    ex.add(new Lift.Example(e.form.text.text, ""));
-                                } else {
-                                    for (Form f : e.translation.form) {
-                                        if (f.lang.equals(translation)) {
-                                            ex.add(new Example(e.form.text.text, f.text.text));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return ex;
-        }
-
-        // Returns a field
-        public String getField(String field) {
-            if (sense.size() > 0) {
-                for (Sense s : sense) {
-                    if (s.field != null) {
-                        for (Field f : s.field) {
-                            if (f.type.equals(field)) {
-                                return f.form.text.text;
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        // Returns the synonym or null if none
-        public String getSynonym() {
-            return getField("syn");
-        }
-
-        // Returns the antonym or null if none
-        public String getAntonym() {
-            return getField("ant");
-        }
-
-        // Returns the cross-references or null if none
-        public List<String> getCross(Lift lift){
+        // Returns the cross-references or null if none. The cross-reference
+        // can be found by calling lift.findById(entry.getCross().get(0))
+        public List<String> getCross() {
             List<String> defs = new ArrayList<String>();
             if (relation != null && relation.size() > 0) {
                 for (Relation r : relation) {
                     if (r.ref != null) {
-                        Entry rel = lift.findById(r.ref);
-                        if (rel != null) {
-                            defs.add(rel.getOriginal());
-                        }
+                        defs.add(r.ref);
                     }
                 }
             }
             return defs;
+        }
+
+        // Returns the senses defined for this entry
+        public List<Sense> getSenses() {
+            return sense;
         }
 
         @Root
@@ -265,6 +180,78 @@ public class Lift {
             public List<Field> field;
             @Element(required = false, name = "grammatical-info")
             public GrammaticalInfo grammaticalInfo;
+
+            // Searches for the gloss
+            public String getGloss(String translation) {
+                if (gloss != null) {
+                    for (Gloss g : gloss) {
+                        if (g.lang.equals(translation)) {
+                            return g.text.text;
+                        }
+                    }
+                }
+                //System.out.println("Get gloss missing: " + translation + ":" + lexicalUnit.form.text.text);
+                return "";
+            }
+
+            // Returns the definition
+            public String getDefinition(String translation) {
+                if (definition != null) {
+                    for (Definition d : definition) {
+                        for (Form f : d.form) {
+                            if (f.lang.equals(translation)) {
+                                return f.text.text;
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // Returns a list of Examples
+            public List<ExampleStr> getExamples(String translation) {
+                List<ExampleStr> ex = new ArrayList<ExampleStr>();
+                if (example != null) {
+                    for (Example e : example) {
+                        if (e != null && e.form != null) {
+                            if (e.translation == null) {
+                                // Some examples don't have a translation
+                                ex.add(new ExampleStr(e.form.text.text, ""));
+                            } else {
+                                for (Form f : e.translation.form) {
+                                    if (f.lang.equals(translation)) {
+                                        ex.add(new ExampleStr(e.form.text.text, f.text.text));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return ex;
+            }
+
+            // Returns a field
+            public String getField(String fi) {
+                if (field != null) {
+                    for (Field f : field) {
+                        if (f.type.equals(fi)) {
+                            return f.form.text.text;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // Returns the synonym or null if none
+            public String getSynonym() {
+                return getField("syn");
+            }
+
+            // Returns the antonym or null if none
+            public String getAntonym() {
+                return getField("ant");
+            }
+
 
             @Root
             public static class Gloss {
@@ -347,11 +334,12 @@ public class Lift {
         public Form form;
     }
 
-    public static class Example  implements Serializable {
+    public static class ExampleStr implements Serializable {
+        private static final long serialVersionUID = 3141592657316229L;
         public String Example;
         public String Translation;
 
-        public Example(String ex, String tr) {
+        public ExampleStr(String ex, String tr) {
             this.Example = ex;
             this.Translation = tr;
         }
@@ -364,8 +352,8 @@ public class Lift {
 
         private void readObject(java.io.ObjectInputStream in)
                 throws IOException, ClassNotFoundException {
-            Example = (String)in.readObject();
-            Translation = (String)in.readObject();
+            Example = (String) in.readObject();
+            Translation = (String) in.readObject();
         }
 
         private void readObjectNoData()

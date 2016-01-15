@@ -42,14 +42,15 @@ public class WordDetail extends AppCompatActivity {
         setEntry(R.id.trPhon, R.id.tvPhon, R.id.tvPhonText,
                 "Pronunciation", liftCache.Pronunciation);
                 */
+        LiftCacheDefinition lcd = liftCache.Senses.get(0);
         setEntry(R.id.trDefinition, R.id.tvDefinition, R.id.tvDefinitionText,
-                "Definitions", liftCache.TranslationString());
+                "Definitions", lcd.Definition);
         setEntry(R.id.trExample, R.id.tvExample, R.id.tvExampleText,
-                "Examples", liftCache.ExamplesString());
+                "Examples", lcd.ExamplesString());
         setEntry(R.id.trSynonym, R.id.tvSynonym, R.id.tvSynonymText,
-                "Synonym", liftCache.Synonym);
+                "Synonym", lcd.Synonym);
         setEntry(R.id.trAntonym, R.id.tvAntonym, R.id.tvAntonymText,
-                "Antonym", liftCache.Antonym);
+                "Antonym", lcd.Antonym);
         setEntry(R.id.trCross, R.id.tvCross, R.id.tvCrossText,
                 "CrossRef", liftCache.CrossString());
         setEntry(R.id.trUsage, R.id.tvUsage, R.id.tvUsageText,
@@ -87,7 +88,7 @@ public class WordDetail extends AppCompatActivity {
                 for (Map.Entry<String, LiftCache> entry :
                         Translate.wordList.TranslationList.get(dest).entrySet()) {
                     if (isCancelled()) break;
-                    for (Lift.Example ex : entry.getValue().Examples) {
+                    for (Lift.ExampleStr ex : entry.getValue().Senses.get(0).Examples) {
                         if (Language.deAccent(ex.Example).matches(regex)) {
                             if (!entry.getKey().equals(Language.deAccent(liftCache.Original))) {
                                 exampleResults.put(entry.getKey(), entry.getValue());
@@ -108,7 +109,7 @@ public class WordDetail extends AppCompatActivity {
         protected void onProgressUpdate(Integer... progress) {
             String usage = "";
             for (Map.Entry<String, LiftCache> entry : exampleResults.entrySet()) {
-                usage += entry.getValue().ExamplesString() + "\n";
+                usage += entry.getValue().Senses.get(0).ExamplesString() + "\n";
             }
             setEntry(R.id.trUsage, R.id.tvUsage, R.id.tvUsageText,
                     "Usage", usage);
@@ -118,7 +119,7 @@ public class WordDetail extends AppCompatActivity {
         protected void onPostExecute(Long result) {
             for (Map.Entry<String, LiftCache> entry : exampleResults.entrySet()) {
                 LiftCache lc = entry.getValue();
-                addExample(lc.Original, lc.ExamplesString());
+                addExample(lc.Original, lc.Senses.get(0).ExamplesString());
             }
         }
     }

@@ -175,8 +175,8 @@ public class Translate extends AppCompatActivity {
                         searchResultLiftCache.add(lc);
                         TranslationItem newsData = new TranslationItem();
                         newsData.source = lc.Original;
-                        newsData.translation = lc.TranslationString();
-                        newsData.example = lc.ExamplesString();
+                        newsData.translation = lc.SensesToString();
+                        newsData.example = lc.Senses.get(0).ExamplesString();
                         resultList.add(newsData);
                     }
                 }
@@ -341,7 +341,7 @@ public class Translate extends AppCompatActivity {
             }
         } else {
             if (searchResultLiftCache != null && searchResultLiftCache.size() > 0){
-                search = searchResultLiftCache.get(0).Gloss;
+                search = searchResultLiftCache.get(0).SensesToString();
             }
         }
         changeTranslationDirection(search);
