@@ -32,31 +32,6 @@ public class WordList {
     // This holds a list of all translations from source-language to the destination
     // languages, one map-entry per destination language
     Map<String, SortedMap<String, LiftCache>> TranslationList;
-    // First entry is language, then a triple of
-    // DeAccentized word, BackTrans
-    public static class BackTrans implements Serializable{
-        private static final long serialVersionUID = 3141592657316228L;
-        public String BackOriginal;
-        public String Source;
-        public BackTrans(String bo, String src){
-            this.BackOriginal = bo;
-            this.Source = src;
-        }
-
-        private void writeObject(java.io.ObjectOutputStream out)
-                throws IOException {
-            out.writeObject(BackOriginal);
-            out.writeObject(Source);
-        }
-
-        private void readObject(java.io.ObjectInputStream in)
-                throws IOException, ClassNotFoundException {
-            BackOriginal = (String) in.readObject();
-            Source = (String) in.readObject();
-        }
-
-    }
-    Map<String, SortedMap<String, BackTrans>> BackTranslationList;
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
     public static int versionMinor = 7;
@@ -121,12 +96,9 @@ public class WordList {
                 TranslationList = (Map<String, SortedMap<String, LiftCache>>) ois.readObject();
                 LanguageBase = (String) ois.readObject();
                 Languages = (List<String>) ois.readObject();
-                BackTranslationList = (Map<String, SortedMap<String, BackTrans>>)ois.readObject();
                 ois.close();
                 Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.size()));
                 Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.get("en").size()));
-//                Log.i("WordList", "BackTranslation-size:" + String.valueOf(BackTranslationList.size()));
-//                Log.i("WordList", "BackTranslation-size:" + String.valueOf(BackTranslationList.get("en").size()));
                 return true;
             }
         } else {
@@ -165,34 +137,6 @@ public class WordList {
             }
             TranslationList.put(lang, tle);
         }
-        //SetupBackTranslation();
-    }
-
-    // Copying TranslationList to BackTranslationList, so that we can
-    // find the definition of a word from a destination language
-    public void SetupBackTranslation() {
-        // First set up the BackTranslationList with one Treemap per destination language
-        BackTranslationList = new HashMap<>();
-        for (String lang : Languages) {
-            BackTranslationList.put(lang, new TreeMap<String, BackTrans>());
-        }
-
-        // Now iterate over all languages and add all words to the backtranslation
-        for (String lang : Languages) {
-            System.out.println("Setting up backtranslation for " + lang);
-            SortedMap<String, LiftCache> tl = TranslationList.get(lang);
-            SortedMap<String, BackTrans> bt = BackTranslationList.get(lang);
-            for (String wordSource : tl.keySet()) {
-                String wordDest = Language.deAccent(tl.get(wordSource).Senses.get(0).Gloss);
-                // Hack to add multiple definitions by adding spaces
-                while (bt.containsKey(wordDest)) {
-                    wordDest += " ";
-                }
-                BackTrans backtr = new BackTrans(tl.get(wordSource).Senses.get(0).Gloss,
-                        tl.get(wordSource).Original);
-                bt.put(wordDest, backtr);
-            }
-        }
     }
 
     // Writes the actual information to a file 'cache' for faster
@@ -209,7 +153,6 @@ public class WordList {
         oos.writeObject(TranslationList);
         oos.writeObject(LanguageBase);
         oos.writeObject(getLanguages());
-        oos.writeObject(BackTranslationList);
         oos.close();
     }
 
@@ -286,20 +229,6 @@ public class WordList {
             }
         }
         return result;
-    }
-
-    // Searches a word from the dest-language and returns the source-
-    // language for all /#{search}*/
-    public Map<String, BackTrans> searchWordSourceOld(String searchOrig, String source) {
-        String search = Language.deAccent(searchOrig);
-        Log.i("searchWordSource", "source: " + source);
-        SortedMap<String, BackTrans> list = BackTranslationList.get(source);
-        if (list == null) {
-            Log.i("searchWordSource", "searching on null list " + source);
-            return null;
-        } else {
-            return filterPrefix(list, search);
-        }
     }
 
     // Searches for available languages - supposes that first 'entry' with a

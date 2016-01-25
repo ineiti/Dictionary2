@@ -136,11 +136,11 @@ public class Translate extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count,
                                           int after) {
-                // TODO Auto-generated method stub
+                // Nothing to do
             }
             @Override
             public void afterTextChanged(Editable s) {
-                // TODO Auto-generated method stub
+                // Nothing to do
 
             }
         });
@@ -265,16 +265,6 @@ public class Translate extends AppCompatActivity {
         int langs = wordList.Languages.size();
         return getLangDest((index + langs) % (langs * 2));
     }
-
-    /*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_translate, menu);
-        Log.i("menu", "create");
-        return true;
-    }
-    */
 
     // Sets up the menu with a list of translation-directions
     @Override

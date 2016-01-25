@@ -58,7 +58,6 @@ public class LiftCache implements Serializable {
             Searchable = Language.deAccent(Original);
         }
         return reg.matcher(Searchable).matches();
-        //return Searchable.indexOf(search) >= 0;
     }
 
     // Returns whether the pattern matches any of the gloss/definition
@@ -77,7 +76,6 @@ public class LiftCache implements Serializable {
             }
         }
         return ret;
-        //return Searchable.indexOf(search) >= 0;
     }
 
     public String SensesToString() {
