@@ -157,13 +157,13 @@ public class Translate extends AppCompatActivity {
 
         if (word.length() > 0) {
             if (LangId >= wordList.Languages.size()) {
-                Map<String, WordList.BackTrans> result = wordList.searchWordSource(word, getLangSource(LangId));
+                Map<String, LiftCache> result = wordList.searchWordSource(word, getLangSource(LangId));
                 if (result != null) {
-                    for (Map.Entry<String, WordList.BackTrans> tr : result.entrySet()) {
-                        searchResultString.add(tr.getValue().Source);
+                    for (Map.Entry<String, LiftCache> tr : result.entrySet()) {
+                        searchResultString.add(tr.getValue().Original);
                         TranslationItem newsData = new TranslationItem();
-                        newsData.source = tr.getValue().BackOriginal;
-                        newsData.translation = tr.getValue().Source;
+                        newsData.source = tr.getKey();
+                        newsData.translation = tr.getValue().Original;
                         resultList.add(newsData);
                     }
                 }
@@ -336,12 +336,14 @@ public class Translate extends AppCompatActivity {
         Log.i("changeDirection", String.valueOf(LangId));
         String search = "";
         if (LangId >= wordList.Languages.size()) {
+            Log.i("changeDirection", "Going from backtranslation to normal");
             if (searchResultString != null && searchResultString.size() > 0){
                 search = searchResultString.get(0);
             }
         } else {
+            Log.i("changeDirection", "Going from normal to backtranslation");
             if (searchResultLiftCache != null && searchResultLiftCache.size() > 0){
-                search = searchResultLiftCache.get(0).SensesToString();
+                search = searchResultLiftCache.get(0).GetFirstSense();
             }
         }
         changeTranslationDirection(search);

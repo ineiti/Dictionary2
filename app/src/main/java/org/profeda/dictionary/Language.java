@@ -66,6 +66,9 @@ public class Language {
     }
 
     public static String deAccent(String str) {
+        if (str == null){
+            return "";
+        }
         String nfdNormalizedString = Normalizer.normalize(str.toLowerCase(), Normalizer.Form.NFD);
         Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
         String ret = pattern.matcher(nfdNormalizedString).replaceAll("");
@@ -73,6 +76,7 @@ public class Language {
         ret = Pattern.compile("[\\p{P}\\p{Mn}]").matcher(ret).replaceAll("");
         ret = ret.replaceAll("ŋ", "n");
         ret = ret.replaceAll("œ", "oe");
+        ret = ret.trim();
         return ret;
     }
 }

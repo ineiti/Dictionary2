@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /**
  * Created by ineiti on 19/10/2015.
@@ -59,7 +60,7 @@ public class WordList {
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
     public static int versionMinor = 7;
-    public static int versionPatch = 0;
+    public static int versionPatch = 1;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
     // If versionTest is > 0, then this version is used when writing
@@ -74,12 +75,18 @@ public class WordList {
     // saves the cache-file.
     // Call like lift.ReadCache(new FileInputStream(name));
     public WordList(String cacheName, InputStream liftName) throws Exception {
+        Log.i("WordList", "initialising");
         if (!LoadCache(cacheName)) {
+            Log.i("WordList", "loading cache failed");
+            System.out.println("Loading cachefailed");
             // If the cache file hasn't been loaded, we load the whole .lift-file
             // and write the new cache
             Log.i("WordList", "Loading lift-file ");
             InitLift(liftName);
             WriteCache(cacheName);
+        } else {
+            System.out.println("Successfully loaded cache");
+            Log.i("WordList", "Loading cache succeeded");
         }
     }
 
@@ -98,23 +105,32 @@ public class WordList {
         File cacheFile = new File(cacheName);
         // Check if cache is here
         if (cacheFile.exists()) {
-            Log.i("WordList", "Loading cache-file " + cacheFile.getAbsolutePath());
+            System.out.println("Loading cache-file");
+            Log.i("WordList", "Loading cache-file 1.2 " + cacheFile.getAbsolutePath());
             FileInputStream cache = new FileInputStream(cacheName);
             ObjectInputStream ois = new ObjectInputStream(cache);
             int cacheVersion = (int) ois.readObject();
             if (cacheVersion != versionId) {
+                System.out.println("Cache-version mismatch");
                 Log.d("Lift", "Version mismatch.");
                 ois.close();
                 cache.close();
             } else {
                 Log.i("WordList", "Initializing internal variables");
+                System.out.println("Initializing internal variables");
                 TranslationList = (Map<String, SortedMap<String, LiftCache>>) ois.readObject();
                 LanguageBase = (String) ois.readObject();
                 Languages = (List<String>) ois.readObject();
                 BackTranslationList = (Map<String, SortedMap<String, BackTrans>>)ois.readObject();
                 ois.close();
+                Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.size()));
+                Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.get("en").size()));
+//                Log.i("WordList", "BackTranslation-size:" + String.valueOf(BackTranslationList.size()));
+//                Log.i("WordList", "BackTranslation-size:" + String.valueOf(BackTranslationList.get("en").size()));
                 return true;
             }
+        } else {
+            System.out.println("Didn't find cache-file");
         }
         return false;
     }
@@ -133,6 +149,7 @@ public class WordList {
     // yet.
     public void InitLift(InputStream name) throws Exception {
         lift = Lift.ReadLift(name);
+        System.out.println("Lift is read");
         if (lift == null) {
             throw Exception.class.newInstance();
         }
@@ -142,7 +159,6 @@ public class WordList {
             SortedMap<String, LiftCache> tle = new TreeMap<>();
             for (Lift.Entry e : lift.entry) {
                 if (e.lexicalUnit != null) {
-                    String src = Language.deAccent(e.lexicalUnit.form.text.text);
                     LiftCache lc = new LiftCache(e, lift, lang);
                     tle.put(e.id, lc);
                 }
@@ -210,15 +226,16 @@ public class WordList {
     // language 'dest' for all /^#{search}*/
     // Returns a map of words with LiftCaches
     public Map<String, LiftCache> searchWord(String searchOrig, String dest) {
-        String search = Language.deAccent(searchOrig);
         Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
         SortedMap<String, LiftCache> tl = TranslationList.get(dest);
         if (tl == null) {
-            Log.i("searchWord", "Null-search" + search + " for language: " + dest);
+            Log.i("searchWord", "Null-search" + searchOrig + " for language: " + dest);
         } else {
+            String search = Language.deAccent(searchOrig);
+            Pattern reg = Pattern.compile(".*\\b" + search + ".*", Pattern.CASE_INSENSITIVE);
             Log.i("searchWord", search + " for language: " + dest);
             for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
-                if (entry.getValue().matches(search)){
+                if (entry.getValue().matches(reg)){
                     result.put(entry.getKey(), entry.getValue());
                 }
             }
@@ -248,11 +265,34 @@ public class WordList {
         }
         return result;
     }
+    // Searches a word from the dest-language and returns the source-
+    // language for all /#{search}*/
+    public Map<String, LiftCache> searchWordSource(String searchOrig, String source) {
+        Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
+        SortedMap<String, LiftCache> tl = TranslationList.get(source);
+        if (tl == null) {
+            Log.i("searchWordSource", "Null-search" + searchOrig + " for language: " + source);
+        } else {
+            String search = Language.deAccent(searchOrig);
+            Pattern reg = Pattern.compile(".*\\b" + search + ".*", Pattern.CASE_INSENSITIVE);
+            Log.i("searchWordSource", search + " for language: " + source);
+            for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
+                List<String> results = entry.getValue().matchesSenses(reg);
+                if (results.size() > 0){
+                    for (String res: results){
+                        result.put(res, entry.getValue());
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     // Searches a word from the dest-language and returns the source-
     // language for all /#{search}*/
-    public Map<String, BackTrans> searchWordSource(String searchOrig, String source) {
+    public Map<String, BackTrans> searchWordSourceOld(String searchOrig, String source) {
         String search = Language.deAccent(searchOrig);
+        Log.i("searchWordSource", "source: " + source);
         SortedMap<String, BackTrans> list = BackTranslationList.get(source);
         if (list == null) {
             Log.i("searchWordSource", "searching on null list " + source);

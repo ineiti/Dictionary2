@@ -48,6 +48,18 @@ public class LiftCacheDefinition  implements Serializable {
                 "\n";
     }
 
+    // Returns the gloss, or if it doesn't exist, the Definition
+    public String GlossDef(){
+        if (Gloss != null && Gloss != ""){
+            return Gloss;
+        } else if (Definition != null && Definition != ""){
+            return Definition;
+        } else{
+            System.out.println("No GlossDef for " + this.String());
+            return "";
+        }
+    }
+
     // Used for serialisation
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {

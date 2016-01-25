@@ -40,7 +40,7 @@ public class LiftTest {
     @Test
     public void testSearch() throws Exception{
         loadWholeFile();
-        List<String> translations = Arrays.asList("a", "kirki", "kubo turti");
+        List<String> translations = Arrays.asList("ali", "kirki", "kubo turti");
 
         for (String s : translations) {
             Map<String, LiftCache> e = wordList.searchWord(s, "en");
@@ -62,14 +62,28 @@ public class LiftTest {
         }
         result = wordList.searchWord("a", "en");
         System.out.println(result.size());
-        assert(result.size() == 1);
+        assert(result.size() == 128);
         for (Map.Entry<String, LiftCache> ent : result.entrySet()) {
             System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
         }
     }
 
+    @Test
+    public void testRegexp(){
+        String sentence = "The quick brown fox";
+        Pattern p1 = Pattern.compile(".*\\bfox", Pattern.CASE_INSENSITIVE);
+        Pattern p11 = Pattern.compile(".*\\box", Pattern.CASE_INSENSITIVE);
+        Pattern p2 = Pattern.compile(".*\\bThe.*", Pattern.CASE_INSENSITIVE);
+        Pattern p21 = Pattern.compile(".*\\bhe.*", Pattern.CASE_INSENSITIVE);
+
+        assert(p1.matcher(sentence).matches());
+        assert(!p11.matcher(sentence).matches());
+        assert(p2.matcher(sentence).matches());
+        assert(!p21.matcher(sentence).matches());
+    }
+
     public void searchWord() throws Exception {
-        List<String> translations = Arrays.asList("a", "kirki", "kubo turti");
+        List<String> translations = Arrays.asList("ali", "kirki", "kubo turti");
 
         for (String s : translations) {
             Map<String, LiftCache> e = wordList.searchWord(s, "en");
@@ -78,6 +92,23 @@ public class LiftTest {
             } else {
                 for (Map.Entry<String, LiftCache> ent : e.entrySet()) {
                     System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
+                }
+            }
+        }
+    }
+
+
+    public void searchWordBack() throws Exception {
+        List<String> translations = Arrays.asList("house", "man", "woman");
+
+        for (String s : translations) {
+            Map<String, LiftCache> bt = wordList.searchWordSource(s, "en");
+            if (bt.size() == 0) {
+                System.out.println("Didn't find " + s);
+            } else {
+                for (Map.Entry<String, LiftCache> ent : bt.entrySet()) {
+                    System.out.println(ent.getKey() + " means " +
+                            ent.getValue().Original);
                 }
             }
         }
@@ -105,6 +136,25 @@ public class LiftTest {
         testCacheWrite();
         assert (wordList.LoadCache(cacheName));
         searchWord();
+    }
+
+    @Test
+    public void testCacheWordList() throws Exception{
+        testCacheWrite();
+        WordList wl = new WordList(cacheName, null);
+        assert(wl.TranslationList.size() > 0);
+        searchWord();
+    }
+
+    @Test
+    public void testBackTranslation() throws Exception{
+        testCacheWrite();
+        WordList wl = new WordList(cacheName, null);
+        //loadWholeFile();
+        //WordList wl = wordList;
+//        assert(wl.BackTranslationList.size() > 0);
+//        assert(wl.BackTranslationList.get("en").size() > 0);
+        searchWordBack();
     }
 
     @Test
@@ -157,7 +207,7 @@ public class LiftTest {
         System.out.println(fromTudaga1.get("adigibi").String());
         System.out.println(fromTudaga2.get("aci").String());
 
-        Map<String, WordList.BackTrans> old = wordList.searchWordSource("old woman", "en");
+        Map<String, LiftCache> old = wordList.searchWordSource("old woman", "en");
         System.out.println(old);
         assert (old.size() == 2);
     }
@@ -219,7 +269,7 @@ public class LiftTest {
         loadWholeFile();
         String search1 = "اب";
         String search2 = "أَبٌ";
-        Map<String, WordList.BackTrans> result = wordList.searchWordSource(search1, "ayl");
+        Map<String, LiftCache> result = wordList.searchWordSource(search1, "ayl");
         System.out.println(result);
         result = wordList.searchWordSource(search2, "ayl");
         System.out.println(result);

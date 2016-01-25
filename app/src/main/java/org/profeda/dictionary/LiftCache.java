@@ -8,6 +8,8 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Holds one entry for the LiftCache for easy serialisation
@@ -20,6 +22,7 @@ public class LiftCache implements Serializable {
     public String Original;
     public String Pronunciation;
     public String Searchable;
+    public List<String> SearchableSenses;
     public List<String> Cross;
     public List<LiftCacheDefinition> Senses;
 
@@ -50,20 +53,46 @@ public class LiftCache implements Serializable {
 
     // Returns whether this entry matches the search string, storing
     // the de-accentized string in the cache
-    public boolean matches(String search) {
+    public boolean matches(Pattern reg) {
         if (Searchable == null) {
             Searchable = Language.deAccent(Original);
         }
-        return Searchable.matches(search );
+        return reg.matcher(Searchable).matches();
+        //return Searchable.indexOf(search) >= 0;
+    }
+
+    // Returns whether the pattern matches any of the gloss/definition
+    // and returns a list of all matching definitions
+    public List<String> matchesSenses(Pattern reg) {
+        List<String> ret = new ArrayList<>();
+        if (SearchableSenses == null){
+            SearchableSenses = new ArrayList<>();
+            for (LiftCacheDefinition def : Senses) {
+                SearchableSenses.add(Language.deAccent(def.GlossDef()));
+            }
+        }
+        for (String s: SearchableSenses){
+            if (reg.matcher(s).matches()){
+                ret.add(s);
+            }
+        }
+        return ret;
         //return Searchable.indexOf(search) >= 0;
     }
 
     public String SensesToString() {
         String s = "";
         for (LiftCacheDefinition def : Senses) {
-            s += def.String();
+            s += def.GlossDef() + " ";
         }
         return s;
+    }
+
+    public String GetFirstSense(){
+        if (Senses.size() > 0){
+            return Senses.get(0).GlossDef();
+        }
+        return "";
     }
 
     public String String() {
