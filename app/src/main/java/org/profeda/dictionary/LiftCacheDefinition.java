@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * LiftCacheDefinition holds one definition of a word for one language
  */
-public class LiftCacheDefinition  implements Serializable {
+public class LiftCacheDefinition implements Serializable {
     private static final long serialVersionUID = 3141592657316228L;
     public String Gloss;
     public String Pronunciation;
@@ -38,7 +38,7 @@ public class LiftCacheDefinition  implements Serializable {
     }
 
     // Returns all information in a string
-    public String String(){
+    public String String() {
         return "\nGloss:" + Gloss +
                 "\nDefinition: " + Definition +
                 "\nPronunciation: " + Pronunciation +
@@ -49,12 +49,12 @@ public class LiftCacheDefinition  implements Serializable {
     }
 
     // Returns the gloss, or if it doesn't exist, the Definition
-    public String GlossDef(){
-        if (Gloss != null && Gloss != ""){
-            return Gloss;
-        } else if (Definition != null && Definition != ""){
+    public String GlossDef() {
+        if (Definition != null && Definition != "") {
             return Definition;
-        } else{
+        } else if (Gloss != null && Gloss != "") {
+            return Gloss;
+        } else {
             System.out.println("No GlossDef for " + this.String());
             return "";
         }

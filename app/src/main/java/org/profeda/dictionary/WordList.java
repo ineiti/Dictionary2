@@ -35,7 +35,7 @@ public class WordList {
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
     public static int versionMinor = 7;
-    public static int versionPatch = 1;
+    public static int versionPatch = 2;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
     // If versionTest is > 0, then this version is used when writing
@@ -182,9 +182,6 @@ public class WordList {
                     result.put(entry.getKey(), entry.getValue());
                 }
             }
-//            for (Map.Entry<String, LiftCache> entry : filterPrefix(tl, search).entrySet()) {
-//                result.put(entry.getKey(), entry.getValue());
-//            }
         }
         return result;
     }
@@ -208,6 +205,7 @@ public class WordList {
         }
         return result;
     }
+
     // Searches a word from the dest-language and returns the source-
     // language for all /#{search}*/
     public Map<String, LiftCache> searchWordSource(String searchOrig, String source) {

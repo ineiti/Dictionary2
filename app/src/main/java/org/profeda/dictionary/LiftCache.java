@@ -22,6 +22,8 @@ public class LiftCache implements Serializable {
     public String Original;
     public String Pronunciation;
     public String Searchable;
+    public String RefArab;
+    public String BaseForm;
     public List<String> SearchableSenses;
     public List<String> Cross;
     public List<LiftCacheDefinition> Senses;
@@ -34,6 +36,9 @@ public class LiftCache implements Serializable {
                 e.lexicalUnit.form.text != null) {
             Original = e.getOriginal();
             Pronunciation = e.getPronunciation();
+            if (e.refArab != null) {
+                RefArab = e.refArab.value;
+            }
             // Add all cross-references
             Cross = new ArrayList<String>();
             for (String c : e.getCross()) {
@@ -94,11 +99,15 @@ public class LiftCache implements Serializable {
     }
 
     public String String() {
-        return "Original: " + Original +
+        String ret = "Original: " + Original +
                 "\nPronunciation: " + Pronunciation +
                 "\nCross reference: " + Cross +
                 "\nDefinitions: " + SensesToString() +
                 "\n";
+        if (RefArab != null){
+            ret += "Refarab: " + RefArab + "\n";
+        }
+        return ret;
     }
 
     // Returns the glosses in a list or definitions if no gloss is found
@@ -149,6 +158,7 @@ public class LiftCache implements Serializable {
             throws IOException {
         out.writeObject(Original);
         out.writeObject(Pronunciation);
+        out.writeObject(RefArab);
         out.writeObject(Cross);
         out.writeObject(Senses);
     }
@@ -157,6 +167,7 @@ public class LiftCache implements Serializable {
             throws IOException, ClassNotFoundException {
         Original = (String) in.readObject();
         Pronunciation = (String) in.readObject();
+        RefArab = (String) in.readObject();
         Cross = (List<String>) in.readObject();
         Senses = (List<LiftCacheDefinition>) in.readObject();
     }

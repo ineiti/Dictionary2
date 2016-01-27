@@ -105,12 +105,15 @@ public class Lift {
         public LexicalUnit lexicalUnit;
         @Element(required = false)
         public Trait trait;
+        @Element(required = false)
+        public RefArab refArab;
         @ElementList(inline = true, required = false)
         public List<Pronunciation> pronunciation;
         @ElementList(inline = true, required = false)
         public List<Sense> sense;
         @ElementList(inline = true, required = false)
         public List<Relation> relation;
+
 
         // Returns the original string
         public String getOriginal() {
@@ -287,6 +290,7 @@ public class Lift {
                 @Attribute
                 public String value;
             }
+
         }
 
         @Root
@@ -295,6 +299,12 @@ public class Lift {
             public String type;
             @Attribute
             public String ref;
+        }
+
+        @Root
+        public static class RefArab {
+            @Attribute
+            public String value;
         }
     }
 

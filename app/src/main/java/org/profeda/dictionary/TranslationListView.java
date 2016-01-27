@@ -47,29 +47,35 @@ public class TranslationListView extends BaseAdapter {
             holder.source = (TextView) convertView.findViewById(R.id.source);
             holder.translation = (TextView) convertView.findViewById(R.id.translation);
             holder.example = (TextView) convertView.findViewById(R.id.example);
+            holder.refarab = (TextView) convertView.findViewById(R.id.refarab);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
         TranslationItem vh = listData.get(position);
-        holder.source.setText(vh.source);
-        holder.translation.setText(vh.translation);
-        String ex = vh.example;
-        // Make the list-element a bit shorter if there is no example
-        if (ex != null && ex.length() > 0) {
-            holder.example.setText(ex);
-            // Without this the first element of the list doesn't get displayed...
-            holder.example.setMaxHeight(100);
-        } else {
-            holder.example.setMaxHeight(0);
+        if (vh != null) {
+            holder.translation.setText(vh.translation);
+            setHeight(vh.source, holder.source);
+            setHeight(vh.example, holder.example);
+            setHeight(vh.refarab, holder.refarab);
         }
         return convertView;
+    }
+
+    private void setHeight(String str, TextView tv){
+        if (str != null && str.length() > 0){
+            tv.setText(str);
+            tv.setMaxHeight(100);
+        } else {
+            tv.setMaxHeight(0);
+        }
     }
 
     static class ViewHolder {
         TextView source;
         TextView translation;
         TextView example;
+        TextView refarab;
     }
 }

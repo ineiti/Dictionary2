@@ -34,4 +34,13 @@
         android:textSize="16sp"
         android:clickable="false" />
 
+    <TextView
+        android:id="@+id/refarab"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/example"
+        android:textColor="#ffcc80"
+        android:textSize="16sp"
+        android:clickable="false" />
+
 </RelativeLayout>

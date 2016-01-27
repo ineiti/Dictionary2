@@ -115,6 +115,16 @@ public class LiftTest {
     }
 
     @Test
+    public void testDouble() throws Exception{
+        loadWholeFile();
+        Map<String, LiftCache>results = wordList.searchWord("ndogusi", "en");
+        LiftCache ndogusi = results.get("ndogusi_4030259a-3b36-41ce-bfbf-f4ae4855db6b");
+        assert(ndogusi.Senses.size() == 2);
+        System.out.println(ndogusi.Senses.get(0).GlossDef());
+        System.out.println(ndogusi.Senses.get(1).GlossDef());
+    }
+
+    @Test
     public void testLanguages() throws Exception {
         wordList = new WordList("test-languages-1.lift");
         System.out.println(wordList.Languages);
@@ -198,6 +208,14 @@ public class LiftTest {
         assert (ret.equals("hellothere"));
     }
 
+    @Test
+    public void testRefArab() throws Exception{
+        loadWholeFile();
+
+        Map<String, LiftCache> melti = wordList.searchWord("melti", "en");
+        System.out.println(melti);
+        System.out.println(melti.get("melti_55d65bb1-cdc9-40e5-af8d-5bcbc40df8b2").String());
+    }
 
     public void testMultiDest() throws Exception {
         loadWholeFile();

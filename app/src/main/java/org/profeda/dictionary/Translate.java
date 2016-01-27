@@ -172,12 +172,28 @@ public class Translate extends AppCompatActivity {
                 if (result != null) {
                     for (Map.Entry<String, LiftCache> tr : result.entrySet()) {
                         LiftCache lc = tr.getValue();
-                        searchResultLiftCache.add(lc);
-                        TranslationItem newsData = new TranslationItem();
-                        newsData.source = lc.Original;
-                        newsData.translation = lc.SensesToString();
-                        newsData.example = lc.Senses.get(0).ExamplesString();
-                        resultList.add(newsData);
+                        int count = 1;
+                        int sensesCnt = lc.Senses.size();
+                        for (LiftCacheDefinition s: lc.Senses) {
+                            System.out.println("Sense: " + s.String() + "=" + s.GlossDef() + ";");
+                            TranslationItem newsData = new TranslationItem();
+                            if (count == 1) {
+                                newsData.source = lc.Original;
+                            }
+                            if (count == sensesCnt){
+                                newsData.refarab = lc.RefArab;
+                                System.out.println("RefArab is:" + lc.RefArab);
+                            }
+                            if (sensesCnt > 1){
+                                newsData.translation = "(" + String.valueOf(count) + ") " + s.GlossDef();
+                            } else {
+                                newsData.translation = s.GlossDef();
+                            }
+                            newsData.example = s.ExamplesString();
+                            count++;
+                            resultList.add(newsData);
+                            searchResultLiftCache.add(lc);
+                        }
                     }
                 }
             }

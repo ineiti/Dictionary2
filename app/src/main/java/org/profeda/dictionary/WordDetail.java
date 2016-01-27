@@ -36,12 +36,15 @@ public class WordDetail extends AppCompatActivity {
         liftCache = (LiftCache) bundle.get("EXTRA_LIFTCACHE");
         dest = (String) bundle.get("EXTRA_DEST");
         entries = (HashMap<String, String>) bundle.get("EXTRA_ENTRIES");
+        setTitle(liftCache.Original);
         Log.i("WordDetail", liftCache.toString());
         ((TextView) findViewById(R.id.tvWDTitle)).setText(liftCache.Original);
-        /*
-        setEntry(R.id.trPhon, R.id.tvPhon, R.id.tvPhonText,
-                "Pronunciation", liftCache.Pronunciation);
-                */
+        setEntry(R.id.trRefarab, R.id.tvRefarab, R.id.tvRefarabText,
+                "->", liftCache.RefArab);
+        setEntry(R.id.trBaseForm, R.id.tvBaseForm, R.id.tvBaseFormText,
+                "->", liftCache.BaseForm);
+        setEntry(R.id.trCross, R.id.tvCross, R.id.tvCrossText,
+                "->", liftCache.CrossString());
         LiftCacheDefinition lcd = liftCache.Senses.get(0);
         setEntry(R.id.trDefinition, R.id.tvDefinition, R.id.tvDefinitionText,
                 "Definitions", lcd.Definition);
