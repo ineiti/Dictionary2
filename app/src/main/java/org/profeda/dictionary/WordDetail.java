@@ -116,7 +116,7 @@ public class WordDetail extends AppCompatActivity {
         protected void onPostExecute(Long result) {
             if (exampleResults.size() > 0) {
                 TableLayout tl = (TableLayout) findViewById(R.id.tlWordDetail);
-                addRow(tl, entries.get("Additional"), "", "");
+                addRow(tl, "*** " + entries.get("Additional") + " ***", "", "");
                 for (Map.Entry<String, LiftCacheDefinition> entry : exampleResults.entrySet()) {
                     String word = entry.getKey();
                     String example = entry.getValue().ExamplesString();
