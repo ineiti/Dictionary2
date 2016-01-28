@@ -12,30 +12,24 @@ public class Language {
     // Defines the translations for the user-interface
     public static HashMap<String, HashMap<String, String>> EntryToLanguage(){
         final HashMap<String, String> trEnglish = new HashMap<String, String>() {{
-            put("Gloss", "Gloss");
-            put("Pronunciation", "Pronunciation");
-            put("Definitions", "Definitions");
+            put("Meaning", "Meaning");
             put("Examples", "Examples");
-            put("Synonym", "Synonym");
-            put("Antonym", "Antonym");
-            put("CrossRef", "Cross reference");
-            put("Usage", "Usage");
+            put("Additional", "Additional Sentences");
         }};
         final HashMap<String, String> trFrench = new HashMap<String, String>() {{
-            put("Gloss", "Courte");
-            put("Pronunciation", "Prononciation");
-            put("Definitions", "Définitions");
+            put("Meaning", "Sens");
             put("Examples", "Exemples");
-            put("Synonym", "Synonym");
-            put("Antonym", "Antonym");
-            put("CrossRef", "Référence\ncroisée");
-            put("Usage", "Utilisation");
+            put("Additional", "Exemples supplémentaires");
+        }};
+        final HashMap<String, String> trArab = new HashMap<String, String>() {{
+            put("Meaning", "المعنى ");
+            put("Examples", "أَمْثال");
+            put("Additional", "أَمْثال إِضافيّة ");
         }};
         return new HashMap<String, HashMap<String, String>>() {{
             put("en", trEnglish);
             put("fr", trFrench);
-            put("tuq", trEnglish);
-            put("ayl", trEnglish);
+            put("ayl", trArab);
         }};
     }
 

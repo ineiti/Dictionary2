@@ -1,9 +1,8 @@
 <resources>
-    <string name="app_name">Dictionary</string>
+    <string name="app_name">Dictionary Tudaga</string>
 
     <string name="action_about">About</string>
     <string name="title_activity_word_detail">WordDetail</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 </resources>

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.internal.view.menu.ActionMenuItemView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -41,7 +42,6 @@ public class Translate extends AppCompatActivity {
 
     // Menu-id of the language-choice
     int LangId;
-    static int menuLanguage = 1;
     static int WORD_DETAIL_RESULT = 1;
 
 
@@ -114,30 +114,21 @@ public class Translate extends AppCompatActivity {
 
     // Launches a search for each keypress and disables enter key
     private void setKeyListener() {
-        etSearch.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                Log.i("KeyListener:", String.valueOf(keyCode));
-                showSearch();
-                switch (keyCode) {
-                    case KeyEvent.KEYCODE_ENTER:
-                        return true;
-                }
-                return false;
-            }
-        });
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() > 0){
+                if (s.length() > 0) {
+                    Log.i("onTextChanged:", s.toString());
                     showSearch();
                 }
             }
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count,
                                           int after) {
                 // Nothing to do
             }
+
             @Override
             public void afterTextChanged(Editable s) {
                 // Nothing to do
@@ -174,17 +165,17 @@ public class Translate extends AppCompatActivity {
                         LiftCache lc = tr.getValue();
                         int count = 1;
                         int sensesCnt = lc.Senses.size();
-                        for (LiftCacheDefinition s: lc.Senses) {
-                            System.out.println("Sense: " + s.String() + "=" + s.GlossDef() + ";");
+                        for (LiftCacheDefinition s : lc.Senses) {
+                            //System.out.println("Sense: " + s.String() + "=" + s.GlossDef() + ";");
                             TranslationItem newsData = new TranslationItem();
                             if (count == 1) {
                                 newsData.source = lc.Original;
                             }
-                            if (count == sensesCnt){
+                            if (count == sensesCnt) {
                                 newsData.refarab = lc.RefArab;
-                                System.out.println("RefArab is:" + lc.RefArab);
+                                //System.out.println("RefArab is:" + lc.RefArab);
                             }
-                            if (sensesCnt > 1){
+                            if (sensesCnt > 1) {
                                 newsData.translation = "(" + String.valueOf(count) + ") " + s.GlossDef();
                             } else {
                                 newsData.translation = s.GlossDef();
@@ -202,8 +193,9 @@ public class Translate extends AppCompatActivity {
         }
         lvTranslations.setAdapter(new TranslationListView(this, resultList));
     }
+
     // Sets the search field and searches for that one
-    public void showSearch(String text){
+    public void showSearch(String text) {
         Log.i("showSearchT", text);
         etSearch.setText(text);
         showSearch();
@@ -234,11 +226,10 @@ public class Translate extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Long result) {
+            Log.i("loading", "postexecute");
             loadingDialog.dismiss();
             LangId = sharedPref.getInt("LangId", 0);
             setLanguages(LangId);
-            invalidateOptionsMenu();
-            Log.i("loading", "postexecute");
         }
     }
 
@@ -260,6 +251,10 @@ public class Translate extends AppCompatActivity {
         tvLangDst.setText(Language.langToFull(dest));
         editor.putInt("LangId", id);
         editor.commit();
+        String title = source + "<->" + dest;
+        Log.i("setLanguages", "title will be: " + title);
+        ActionMenuItemView mitem = (ActionMenuItemView) findViewById(R.id.action_language);
+        mitem.setTitle(title);
         showSearch();
     }
 
@@ -282,27 +277,10 @@ public class Translate extends AppCompatActivity {
         return getLangDest((index + langs) % (langs * 2));
     }
 
-    // Sets up the menu with a list of translation-directions
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        Log.i("menu", "prepareoptions");
-        menu.removeGroup(menuLanguage);
-        if (wordList != null) {
-            // Offer the translation FROM the base-language to the other languages,
-            // then the other way around.
-            for (int index = 0; index < wordList.Languages.size() * 2; index++) {
-                String langstr = Language.langToFull(getLangSource(index)) + " -> " +
-                        Language.langToFull(getLangDest(index));
-                menu.add(menuLanguage, index + 1, index + 1, langstr);
-            }
-        }
-        return true;
-    }
-
     public void showAbout() {
         AlertDialog dialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Dictionary-app\nBased on SIL Lift-files\n(c) 2015 by Linus Gasser\n" +
+        builder.setMessage("Dictionary-app\nBased on SIL Lift-files\n(c) 2016 by Linus Gasser\n" +
                 "ineiti@profeda.org")
                 .setTitle("About");
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -319,11 +297,31 @@ public class Translate extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        if (item.toString().equals("About")) {
+        String mstr = item.toString();
+        //System.out.println("Menu is " + mstr + " - with id:" + String.valueOf(item.getGroupId()));
+        if (mstr.equals("About")) {
             showAbout();
         } else {
-            int id = item.getItemId() - 1;
-            setLanguages(id);
+            // This is our 'language'-text
+            List<String> listItems = new ArrayList<String>();
+            for (int index = 0; index < wordList.Languages.size() * 2; index++) {
+                String langstr = Language.langToFull(getLangSource(index)) + " -> " +
+                        Language.langToFull(getLangDest(index));
+                listItems.add(langstr);
+            }
+
+            final CharSequence[] items = listItems.toArray(new CharSequence[listItems.size()]);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Pick a translation");
+
+            builder.setItems(items, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int item) {
+                    //Toast.makeText(getApplicationContext(), String.valueOf(item), Toast.LENGTH_SHORT).show();
+                    setLanguages(item);
+                }
+            });
+            AlertDialog alert = builder.create();
+            alert.show();
         }
 
         return super.onOptionsItemSelected(item);
@@ -343,15 +341,22 @@ public class Translate extends AppCompatActivity {
         String search = "";
         if (LangId >= wordList.Languages.size()) {
             Log.i("changeDirection", "Going from backtranslation to normal");
-            if (searchResultString != null && searchResultString.size() > 0){
+            if (searchResultString != null && searchResultString.size() > 0) {
                 search = searchResultString.get(0);
             }
         } else {
             Log.i("changeDirection", "Going from normal to backtranslation");
-            if (searchResultLiftCache != null && searchResultLiftCache.size() > 0){
+            if (searchResultLiftCache != null && searchResultLiftCache.size() > 0) {
                 search = searchResultLiftCache.get(0).GetFirstSense();
             }
         }
         changeTranslationDirection(search);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_translate, menu);
+        return super.onCreateOptionsMenu(menu);
     }
 }

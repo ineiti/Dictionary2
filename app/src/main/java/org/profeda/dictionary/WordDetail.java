@@ -26,7 +26,7 @@ public class WordDetail extends AppCompatActivity {
     LiftCache liftCache;
     String dest;
     HashMap<String, String> entries;
-    Map<String, LiftCache> exampleResults;
+    Map<String, LiftCacheDefinition> exampleResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,45 +36,39 @@ public class WordDetail extends AppCompatActivity {
         liftCache = (LiftCache) bundle.get("EXTRA_LIFTCACHE");
         dest = (String) bundle.get("EXTRA_DEST");
         entries = (HashMap<String, String>) bundle.get("EXTRA_ENTRIES");
-        setTitle(liftCache.Original);
+        String search = liftCache.Original;
+        setTitle(search);
         Log.i("WordDetail", liftCache.toString());
-        ((TextView) findViewById(R.id.tvWDTitle)).setText(liftCache.Original);
-        setEntry(R.id.trRefarab, R.id.tvRefarab, R.id.tvRefarabText,
-                "->", liftCache.RefArab);
-        setEntry(R.id.trBaseForm, R.id.tvBaseForm, R.id.tvBaseFormText,
-                "->", liftCache.BaseForm);
-        setEntry(R.id.trCross, R.id.tvCross, R.id.tvCrossText,
-                "->", liftCache.CrossString());
-        LiftCacheDefinition lcd = liftCache.Senses.get(0);
-        setEntry(R.id.trDefinition, R.id.tvDefinition, R.id.tvDefinitionText,
-                "Definitions", lcd.Definition);
-        setEntry(R.id.trExample, R.id.tvExample, R.id.tvExampleText,
-                "Examples", lcd.ExamplesString());
-        setEntry(R.id.trSynonym, R.id.tvSynonym, R.id.tvSynonymText,
-                "Synonym", lcd.Synonym);
-        setEntry(R.id.trAntonym, R.id.tvAntonym, R.id.tvAntonymText,
-                "Antonym", lcd.Antonym);
-        setEntry(R.id.trCross, R.id.tvCross, R.id.tvCrossText,
-                "CrossRef", liftCache.CrossString());
-        setEntry(R.id.trUsage, R.id.tvUsage, R.id.tvUsageText,
-                "Usage", "");
+
+        TableLayout tl = (TableLayout) findViewById(R.id.tlWordDetail);
+        addLine(tl, "->", liftCache.RefArab, "");
+        addLine(tl, "->", liftCache.BaseForm, "");
+        addLine(tl, "->", liftCache.CrossString(), "");
+        int senses = liftCache.Senses.size();
+        for (int i = 0; i < senses; i++) {
+            LiftCacheDefinition lcd = liftCache.Senses.get(i);
+            addDefinition(tl, search, lcd, i, senses);
+        }
         new SearchBackground().execute(liftCache.Original);
     }
 
-    public void setEntry(int trEntry, int tvEntry, int tvText, String entry, String text) {
-        TextView tvE = (TextView) findViewById(tvEntry);
-        TextView tvT = (TextView) findViewById(tvText);
-        TableRow row = (TableRow) findViewById(trEntry);
-        if (text != null && text.length() > 0) {
-            tvE.setEnabled(true);
-            tvT.setEnabled(true);
-            row.setVisibility(View.VISIBLE);
-            tvE.setText(entries.get(entry));
-            tvT.setText(text);
-        } else {
-            tvE.setEnabled(false);
-            tvT.setEnabled(false);
-            row.setVisibility(View.GONE);
+    public void addDefinition(TableLayout tl, String search, LiftCacheDefinition lcd, int counter, int size) {
+        String countStr = "";
+        if (size > 1) {
+            countStr = String.format(" (%d)", counter + 1);
+        }
+        addLine(tl, entries.get("Meaning") + countStr, lcd.GlossDef(), search);
+        addLine(tl, "=", lcd.Synonym, "");
+        addLine(tl, "≠", lcd.Antonym, "");
+        addLine(tl, entries.get("Examples"), lcd.ExamplesString(), search);
+    }
+
+    public void addLine(TableLayout tl, String label, String text, String search) {
+        if (text != null && !text.isEmpty()) {
+            if (search.isEmpty()) {
+                search = text;
+            }
+            addRow(tl, label, text, search);
         }
     }
 
@@ -85,17 +79,19 @@ public class WordDetail extends AppCompatActivity {
         protected Long doInBackground(String... searchStr) {
             try {
                 String search = Language.deAccent(searchStr[0]);
-                exampleResults = new TreeMap<String, LiftCache>();
+                exampleResults = new TreeMap<String, LiftCacheDefinition>();
 
                 String regex = ".*\\b" + search + "\\b.*";
                 for (Map.Entry<String, LiftCache> entry :
                         Translate.wordList.TranslationList.get(dest).entrySet()) {
                     if (isCancelled()) break;
-                    for (Lift.ExampleStr ex : entry.getValue().Senses.get(0).Examples) {
-                        if (Language.deAccent(ex.Example).matches(regex)) {
-                            if (!entry.getKey().equals(Language.deAccent(liftCache.Original))) {
-                                exampleResults.put(entry.getKey(), entry.getValue());
-                                //publishProgress(0);
+                    for (LiftCacheDefinition sense : entry.getValue().Senses) {
+                        for (Lift.ExampleStr ex : sense.Examples) {
+                            if (Language.deAccent(ex.Example).matches(regex)) {
+                                if (!entry.getKey().equals(Language.deAccent(liftCache.Original))) {
+                                    exampleResults.put(entry.getValue().Original, sense);
+                                    //publishProgress(0);
+                                }
                             }
                         }
                     }
@@ -111,52 +107,40 @@ public class WordDetail extends AppCompatActivity {
         // Not used for the moment
         protected void onProgressUpdate(Integer... progress) {
             String usage = "";
-            for (Map.Entry<String, LiftCache> entry : exampleResults.entrySet()) {
-                usage += entry.getValue().Senses.get(0).ExamplesString() + "\n";
+            for (Map.Entry<String, LiftCacheDefinition> entry : exampleResults.entrySet()) {
+                usage += entry.getValue().ExamplesString() + "\n";
             }
-            setEntry(R.id.trUsage, R.id.tvUsage, R.id.tvUsageText,
-                    "Usage", usage);
         }
 
         @Override
         protected void onPostExecute(Long result) {
-            for (Map.Entry<String, LiftCache> entry : exampleResults.entrySet()) {
-                LiftCache lc = entry.getValue();
-                addExample(lc.Original, lc.Senses.get(0).ExamplesString());
+            if (exampleResults.size() > 0) {
+                TableLayout tl = (TableLayout) findViewById(R.id.tlWordDetail);
+                addRow(tl, entries.get("Additional"), "", "");
+                for (Map.Entry<String, LiftCacheDefinition> entry : exampleResults.entrySet()) {
+                    String word = entry.getKey();
+                    String example = entry.getValue().ExamplesString();
+                    // Create header with word
+                    addRow(tl, word, "", word);
+                    // Add example below
+                    addRow(tl, "", example, word);
+                }
             }
         }
     }
 
-    // Adds an example to the tableview - contrary to the example of the word,
-    // these examples have the word that holds the example as a header, and the
-    // example below.
-    public void addExample(final String word, String example) {
-        TableLayout tl = (TableLayout) findViewById(R.id.tlWordDetail);
-
-        // Create header with word
-        addRow(tl, word, word, true);
-
-        // Add example below
-        addRow(tl, example, word, false);
-    }
-
     // Adds one row to the tablelayout
-    public void addRow(TableLayout tl, String show, final String search, boolean header){
+    public void addRow(TableLayout tl, String label, String text, final String search) {
         TableRow tr = new TableRow(getApplicationContext());
-        TextView tv = new TextView(getApplicationContext());
-        tv.setText(show);
-        TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
-        tlp.setMargins(2, 2, 2, 2);
-        tlp.span = 2;
-        tlp.weight = 1.0f;
-        if (header){
-            tv.setGravity(Gravity.CENTER_HORIZONTAL);
-            tv.setBackgroundColor(Color.LTGRAY);
+        boolean hasLabel = label != null && !label.isEmpty();
+        boolean hasText = text != null && !text.isEmpty();
+        int span = (hasLabel && hasText) ? 1 : 2;
+        if (hasLabel) {
+            tr.addView(makeTextView(label, span, true));
         }
-        tv.setLayoutParams(tlp);
-        tv.setTextColor(Color.WHITE);
-        tv.setTextSize(22);
-        tr.addView(tv);
+        if (hasText) {
+            tr.addView(makeTextView(text, span, false));
+        }
         tr.setOnClickListener(new AdapterView.OnClickListener() {
                                   public void onClick(View childView) {
                                       returnSearch(search, false);
@@ -164,6 +148,25 @@ public class WordDetail extends AppCompatActivity {
                               }
         );
         tl.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT));
+    }
+
+    public TextView makeTextView(String str, int span, boolean gray) {
+        TextView tv = new TextView(getApplicationContext());
+        tv.setText(str);
+        TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        tlp.setMargins(2, 2, 2, 2);
+        tlp.span = span;
+        tlp.weight = (gray && span == 1) ? 0f : 1f;
+        if (gray) {
+            if (span > 1) {
+                tv.setGravity(Gravity.CENTER_HORIZONTAL);
+            }
+            tv.setBackgroundColor(Color.LTGRAY);
+        }
+        tv.setLayoutParams(tlp);
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(22);
+        return tv;
     }
 
     @Override

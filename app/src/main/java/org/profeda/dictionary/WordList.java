@@ -177,9 +177,14 @@ public class WordList {
             String search = Language.deAccent(searchOrig);
             Pattern reg = Pattern.compile(".*\\b" + search + ".*", Pattern.CASE_INSENSITIVE);
             Log.i("searchWord", search + " for language: " + dest);
+            int found = 0;
             for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
                 if (entry.getValue().matches(reg)){
                     result.put(entry.getKey(), entry.getValue());
+                    found++;
+                    if (found > 10){
+                        break;
+                    }
                 }
             }
         }
