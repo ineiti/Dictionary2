@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,26 +170,70 @@ public class WordList {
     // language 'dest' for all /^#{search}*/
     // Returns a map of words with LiftCaches
     public Map<String, LiftCache> searchWord(String searchOrig, String dest) {
-        Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
+        final String search = Language.deAccent(searchOrig);
+        // Comparator for implementing dictionary sorting.
+        Comparator<String> dictionarySort = new Comparator<String>() {
+            @Override public int compare(String s1, String s2) {
+                return WordList.dictSort(search, s1, s2);
+            }
+        };
+        Map<String, LiftCache> result = new TreeMap<String, LiftCache>(dictionarySort);
         SortedMap<String, LiftCache> tl = TranslationList.get(dest);
         if (tl == null) {
             Log.i("searchWord", "Null-search" + searchOrig + " for language: " + dest);
         } else {
-            String search = Language.deAccent(searchOrig);
             Pattern reg = Pattern.compile(".*\\b" + search + ".*", Pattern.CASE_INSENSITIVE);
             Log.i("searchWord", search + " for language: " + dest);
-            int found = 0;
+
+
+//            int found = 0;
             for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
                 if (entry.getValue().matches(reg)){
-                    result.put(entry.getKey(), entry.getValue());
-                    found++;
-                    if (found > 10){
-                        break;
-                    }
+                    Log.i("Found", entry.getKey());
+                    result.put(entry.getValue().Searchable, entry.getValue());
+//                    found++;
+//                    if (found > 10){
+//                        break;
+//                    }
                 }
             }
         }
         return result;
+    }
+
+    // If searching for 'he', the wanted order is:
+    // he(1), he eats(2), he swims(2), head(3), hell(3), as he said(4), as a head(5)
+    // So, if available
+    // 1. the word only
+    // 2. the word with additions
+    // 3. words starting with the search-pattern
+    // 4. the search-pattern as a word in other phrases
+    // 5. the search-pattern in other phrases
+    public static int dictSort(String search, String s1, String s2){
+        int sort1 = dictSortEval(search, s1);
+        int sort2 = dictSortEval(search, s2);
+//        Log.i("Sorting", search + " " + s1 + " " + s2 + ":" +
+//                String.valueOf(sort1) + String.valueOf(sort2));
+        if (sort1 < sort2){
+            return -1;
+        } else if (sort2 < sort1){
+            return 1;
+        }
+        return s1.compareTo(s2);
+    }
+
+    // Evaluates the string
+    public static int dictSortEval(String search, String s){
+        if (s.equals(search)){
+            return 1;
+        } else if (s.startsWith(search + " ")){
+            return 2;
+        } else if (s.startsWith(search)){
+            return 3;
+        } else if (s.contains(" " + search + " ") || s.endsWith(" " + search)){
+            return 4;
+        }
+        return 5;
     }
 
     // Searches a word from the source-language and returns the destination
@@ -214,12 +259,17 @@ public class WordList {
     // Searches a word from the dest-language and returns the source-
     // language for all /#{search}*/
     public Map<String, LiftCache> searchWordSource(String searchOrig, String source) {
-        Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
+        final String search = Language.deAccent(searchOrig);
+        Comparator<String> dictionarySort = new Comparator<String>() {
+            @Override public int compare(String s1, String s2) {
+                return WordList.dictSort(search, s1, s2);
+            }
+        };
+        Map<String, LiftCache> result = new TreeMap<String, LiftCache>(dictionarySort);
         SortedMap<String, LiftCache> tl = TranslationList.get(source);
         if (tl == null) {
             Log.i("searchWordSource", "Null-search" + searchOrig + " for language: " + source);
         } else {
-            String search = Language.deAccent(searchOrig);
             Pattern reg = Pattern.compile(".*\\b" + search + ".*", Pattern.CASE_INSENSITIVE);
             Log.i("searchWordSource", search + " for language: " + source);
             for (Map.Entry<String, LiftCache> entry: tl.entrySet()){

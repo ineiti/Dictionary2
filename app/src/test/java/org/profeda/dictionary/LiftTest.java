@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static org.junit.Assert.*;
+
 
 /**
  * Created by ineiti on 11/09/2015.
@@ -26,8 +28,8 @@ public class LiftTest {
         System.out.println("Lift version " + wordList.lift.version);
         System.out.println("WordList version " + wordList.versionId);
         System.out.println(wordList.lift.entry.get(0).sense.get(0).gloss.get(1).lang);
-        assert (wordList.lift.version.equals("0.13"));
-        assert (wordList.versionId == 0x10700);
+        assertEquals("0.13", wordList.lift.version);
+        assertEquals(0x10702, wordList.versionId);
     }
 
 
@@ -44,7 +46,7 @@ public class LiftTest {
 
         for (String s : translations) {
             Map<String, LiftCache> e = wordList.searchWord(s, "en");
-            assert (e.size() > 0);
+            assertTrue(e.size() > 0);
             for (Map.Entry<String, LiftCache> ent : e.entrySet()) {
                 System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
             }
@@ -56,13 +58,13 @@ public class LiftTest {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("kirki", "en");
         System.out.println(result.size());
-        assert(result.size() == 1);
+        assertTrue(result.size() == 1);
         for (Map.Entry<String, LiftCache> ent : result.entrySet()) {
             System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
         }
         result = wordList.searchWord("a", "en");
         System.out.println(result.size());
-        assert(result.size() == 128);
+        assertTrue(result.size() == 128);
         for (Map.Entry<String, LiftCache> ent : result.entrySet()) {
             System.out.println(ent.getValue().Original + " means " + ent.getValue().String());
         }
@@ -76,10 +78,10 @@ public class LiftTest {
         Pattern p2 = Pattern.compile(".*\\bThe.*", Pattern.CASE_INSENSITIVE);
         Pattern p21 = Pattern.compile(".*\\bhe.*", Pattern.CASE_INSENSITIVE);
 
-        assert(p1.matcher(sentence).matches());
-        assert(!p11.matcher(sentence).matches());
-        assert(p2.matcher(sentence).matches());
-        assert(!p21.matcher(sentence).matches());
+        assertTrue(p1.matcher(sentence).matches());
+        assertTrue(!p11.matcher(sentence).matches());
+        assertTrue(p2.matcher(sentence).matches());
+        assertTrue(!p21.matcher(sentence).matches());
     }
 
     public void searchWord() throws Exception {
@@ -119,7 +121,7 @@ public class LiftTest {
         loadWholeFile();
         Map<String, LiftCache>results = wordList.searchWord("ndogusi", "en");
         LiftCache ndogusi = results.get("ndogusi_4030259a-3b36-41ce-bfbf-f4ae4855db6b");
-        assert(ndogusi.Senses.size() == 2);
+        assertTrue(ndogusi.Senses.size() == 2);
         System.out.println(ndogusi.Senses.get(0).GlossDef());
         System.out.println(ndogusi.Senses.get(1).GlossDef());
     }
@@ -128,7 +130,7 @@ public class LiftTest {
     public void testLanguages() throws Exception {
         wordList = new WordList("test-languages-1.lift");
         System.out.println(wordList.Languages);
-        assert (wordList.Languages.size() == 3);
+        assertTrue(wordList.Languages.size() == 3);
     }
 
     @Test
@@ -138,13 +140,13 @@ public class LiftTest {
         wordList = new WordList(liftName);
         System.out.println("Wordlist loaded");
         wordList.WriteCache(cacheName);
-        assert (f.exists());
+        assertTrue(f.exists());
     }
 
     @Test
     public void testCacheRead() throws Exception {
         testCacheWrite();
-        assert (wordList.LoadCache(cacheName));
+        assertTrue(wordList.LoadCache(cacheName));
         searchWord();
     }
 
@@ -152,7 +154,7 @@ public class LiftTest {
     public void testCacheWordList() throws Exception{
         testCacheWrite();
         WordList wl = new WordList(cacheName, null);
-        assert(wl.TranslationList.size() > 0);
+        assertTrue(wl.TranslationList.size() > 0);
         searchWord();
     }
 
@@ -162,8 +164,8 @@ public class LiftTest {
         WordList wl = new WordList(cacheName, null);
         //loadWholeFile();
         //WordList wl = wordList;
-//        assert(wl.BackTranslationList.size() > 0);
-//        assert(wl.BackTranslationList.get("en").size() > 0);
+//        assertTrue(wl.BackTranslationList.size() > 0);
+//        assertTrue(wl.BackTranslationList.get("en").size() > 0);
         searchWordBack();
     }
 
@@ -172,18 +174,21 @@ public class LiftTest {
         loadWholeFile();
         wordList.versionTest = 2;
         wordList.WriteCache(cacheName);
-        assert (!wordList.LoadCache(cacheName));
+        assertTrue(!wordList.LoadCache(cacheName));
     }
 
     @Test
     public void testDefinitions() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("borsu", "en");
-        List<LiftCacheDefinition> s = result.get("borsu").Senses;
+        LiftCache lc = result.get(result.keySet().toArray()[0]);
+        System.out.println(result);
+        System.out.println(lc);
+        List<LiftCacheDefinition> s = lc.Senses;
         System.out.println(s.get(0).Definition);
         System.out.println(s.get(1).Definition);
-        assert (s.get(0).Definition.equals("alone"));
-        assert (s.get(1).Definition.equals("only"));
+        assertTrue(s.get(0).Definition.equals("alone"));
+        assertTrue(s.get(1).Definition.equals("only"));
     }
 
     @Test
@@ -192,7 +197,7 @@ public class LiftTest {
         Map<String, LiftCache> result = wordList.searchWord("borsu", "en");
         List<LiftCacheDefinition> s = result.get("borsu").Senses;
         System.out.println(s);
-        assert (s.size() == 2);
+        assertTrue(s.size() == 2);
     }
 
     @Test
@@ -205,7 +210,7 @@ public class LiftTest {
         System.out.println(Language.deAccent(arabic_str));
 
         String ret = Language.deAccent("hello(there)");
-        assert (ret.equals("hellothere"));
+        assertTrue(ret.equals("hellothere"));
     }
 
     @Test
@@ -227,7 +232,7 @@ public class LiftTest {
 
         Map<String, LiftCache> old = wordList.searchWordSource("old woman", "en");
         System.out.println(old);
-        assert (old.size() == 2);
+        assertTrue(old.size() == 2);
     }
 
 
@@ -240,7 +245,7 @@ public class LiftTest {
         System.out.println(fromTudaga1.get("bidi  ").String());
 
         // There should be 'bidi', 'bîdi' and 'bîdibidi'
-        assert (fromTudaga1.size() == 4);
+        assertTrue(fromTudaga1.size() == 4);
     }
 
 
@@ -252,7 +257,7 @@ public class LiftTest {
 
         // Actual results in lift-file - will probably change with next
         // lift-file...
-        assert (result.size() == 25);
+        assertTrue(result.size() == 25);
     }
 
 
