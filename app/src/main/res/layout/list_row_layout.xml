@@ -11,7 +11,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
-        android:textColor="#ffffff"
+        android:textColor="#dfd"
         android:typeface="sans"
         android:clickable="false" />
 
@@ -42,5 +42,17 @@
         android:textColor="#ffcc80"
         android:textSize="16sp"
         android:clickable="false" />
+
+    <View
+        android:id="@+id/hor_space"
+        android:layout_below="@id/refarab"
+        android:layout_width="match_parent"
+        android:layout_height="12dp"/>
+
+    <View
+        android:layout_below="@id/hor_space"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#888" />
 
 </RelativeLayout>

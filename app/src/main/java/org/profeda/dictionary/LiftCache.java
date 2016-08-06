@@ -53,15 +53,17 @@ public class LiftCache implements Serializable {
             for (Lift.Entry.Sense s : e.getSenses()) {
                 Senses.add(new LiftCacheDefinition(s, tr));
             }
+            Searchable = Language.deAccent(Original);
+            SearchableSenses = new ArrayList<>();
+            for (LiftCacheDefinition def : Senses) {
+                SearchableSenses.add(Language.deAccent(def.GlossDef()));
+            }
         }
     }
 
     // Returns whether this entry matches the search string, storing
     // the de-accentized string in the cache
     public boolean matches(Pattern reg) {
-        if (Searchable == null) {
-            Searchable = Language.deAccent(Original);
-        }
         return reg.matcher(Searchable).matches();
     }
 
@@ -69,14 +71,8 @@ public class LiftCache implements Serializable {
     // and returns a list of all matching definitions
     public List<String> matchesSenses(Pattern reg) {
         List<String> ret = new ArrayList<>();
-        if (SearchableSenses == null){
-            SearchableSenses = new ArrayList<>();
-            for (LiftCacheDefinition def : Senses) {
-                SearchableSenses.add(Language.deAccent(def.GlossDef()));
-            }
-        }
-        for (String s: SearchableSenses){
-            if (reg.matcher(s).matches()){
+        for (String s : SearchableSenses) {
+            if (reg.matcher(s).matches()) {
                 ret.add(s);
             }
         }
@@ -91,8 +87,8 @@ public class LiftCache implements Serializable {
         return s;
     }
 
-    public String GetFirstSense(){
-        if (Senses.size() > 0){
+    public String GetFirstSense() {
+        if (Senses.size() > 0) {
             return Senses.get(0).GlossDef();
         }
         return "";
@@ -104,7 +100,7 @@ public class LiftCache implements Serializable {
                 "\nCross reference: " + Cross +
                 "\nDefinitions: " + SensesToString() +
                 "\n";
-        if (RefArab != null){
+        if (RefArab != null) {
             ret += "Refarab: " + RefArab + "\n";
         }
         return ret;
@@ -161,6 +157,8 @@ public class LiftCache implements Serializable {
         out.writeObject(RefArab);
         out.writeObject(Cross);
         out.writeObject(Senses);
+        out.writeObject(Searchable);
+        out.writeObject(SearchableSenses);
     }
 
     private void readObject(java.io.ObjectInputStream in)
@@ -170,6 +168,8 @@ public class LiftCache implements Serializable {
         RefArab = (String) in.readObject();
         Cross = (List<String>) in.readObject();
         Senses = (List<LiftCacheDefinition>) in.readObject();
+        Searchable = (String)in.readObject();
+        SearchableSenses = (List<String>)in.readObject();
     }
 
     private void readObjectNoData()

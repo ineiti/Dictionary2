@@ -39,6 +39,7 @@ public class Translate extends AppCompatActivity {
     SharedPreferences.Editor editor;
     List<String> searchResultString;
     List<LiftCache> searchResultLiftCache;
+    History history;
 
     // Menu-id of the language-choice
     int LangId;
@@ -69,6 +70,21 @@ public class Translate extends AppCompatActivity {
         Log.i("oncreate", "finished");
     }
 
+    @Override
+    public void onBackPressed(){
+        // As there is always a growing element at the end, size == 1 means the history
+        // is empty.
+        History.HistoryEntry he = history.getLast();
+        if (he.LangID == -1){
+            Log.i("back", "finishing");
+            finish();
+            return;
+        }
+        Log.i("back", String.valueOf(he.LangID) + he.text);
+        setLanguages(he.LangID);
+        showSearch(he.text);
+    }
+
     // Sets up a listener for the ListView. If it's translating FROM the main language,
     // it presents details, else it changes the translation direction
     private void setListItemListener() {
@@ -80,9 +96,11 @@ public class Translate extends AppCompatActivity {
                     String text = searchResultString.get(position);
                     Log.i("showDetailText", text);
                     changeTranslationDirectionSearchList(null);
+                    history.addItem(LangId);
                     etSearch.setText(text);
                     showSearch();
                 } else {
+                    history.addItem(LangId);
                     LiftCache lc = searchResultLiftCache.get(position);
                     Log.i("showDetailLC", lc.Original);
                     Intent intent = new Intent(getBaseContext(), WordDetail.class);
@@ -142,6 +160,7 @@ public class Translate extends AppCompatActivity {
     public void showSearch() {
         String word = etSearch.getText().toString();
         Log.i("showSearch", word);
+        history.setText(word);
         searchResultLiftCache = new ArrayList<LiftCache>();
         searchResultString = new ArrayList<>();
         ArrayList<TranslationItem> resultList = new ArrayList<TranslationItem>();
@@ -203,6 +222,7 @@ public class Translate extends AppCompatActivity {
 
     // Cleans the search field
     public void deleteSearch(View b) {
+        history.addItem(LangId);
         showSearch("");
     }
 
@@ -229,6 +249,7 @@ public class Translate extends AppCompatActivity {
             Log.i("loading", "postexecute");
             loadingDialog.dismiss();
             LangId = sharedPref.getInt("LangId", 0);
+            history = new History(LangId);
             setLanguages(LangId);
         }
     }
@@ -318,6 +339,7 @@ public class Translate extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int item) {
                     //Toast.makeText(getApplicationContext(), String.valueOf(item), Toast.LENGTH_SHORT).show();
                     setLanguages(item);
+                    history.addItem(LangId);
                 }
             });
             AlertDialog alert = builder.create();
@@ -331,6 +353,7 @@ public class Translate extends AppCompatActivity {
     public void changeTranslationDirection(String search) {
         int size = wordList.Languages.size();
         setLanguages((LangId + size) % (2 * size));
+        history.addItem(LangId);
         showSearch(search);
     }
 

@@ -35,7 +35,7 @@ public class WordList {
     Map<String, SortedMap<String, LiftCache>> TranslationList;
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
-    public static int versionMinor = 7;
+    public static int versionMinor = 8;
     public static int versionPatch = 2;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
@@ -189,7 +189,7 @@ public class WordList {
 //            int found = 0;
             for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
                 if (entry.getValue().matches(reg)){
-                    Log.i("Found", entry.getKey());
+//                    Log.i("Found", entry.getKey());
                     result.put(entry.getValue().Searchable, entry.getValue());
 //                    found++;
 //                    if (found > 10){
