@@ -55,7 +55,6 @@ public class LiftCacheDefinition implements Serializable {
         } else if (Gloss != null && Gloss != "") {
             return Gloss;
         } else {
-            System.out.println("No GlossDef for " + this.String());
             return "";
         }
     }

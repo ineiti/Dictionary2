@@ -106,6 +106,8 @@ public class Lift {
         @Element(required = false)
         public Trait trait;
         @Element(required = false)
+        public Field field;
+        @Element(required = false)
         public RefArab refArab;
         @ElementList(inline = true, required = false)
         public List<Pronunciation> pronunciation;
@@ -113,6 +115,8 @@ public class Lift {
         public List<Sense> sense;
         @ElementList(inline = true, required = false)
         public List<Relation> relation;
+        @Element(required = false)
+        public Note note;
 
 
         // Returns the original string
@@ -181,6 +185,8 @@ public class Lift {
             public List<Example> example;
             @ElementList(inline = true, required = false)
             public List<Field> field;
+            @ElementList(inline = true, required = false)
+            public List<Relation> relation;
             @Element(required = false, name = "grammatical-info")
             public GrammaticalInfo grammaticalInfo;
 
@@ -238,7 +244,7 @@ public class Lift {
                 if (field != null) {
                     for (Field f : field) {
                         if (f.type.equals(fi)) {
-                            return f.form.text.text;
+                            return f.form.get(0).text.text;
                         }
                     }
                 }
@@ -262,6 +268,25 @@ public class Lift {
                 public String lang;
                 @Element
                 public TextC text;
+                @Element(required = false)
+                public Annotation annotation;
+
+                @Root
+                public static class Annotation {
+                    @Attribute
+                    public String name;
+
+                    @Attribute
+                    public String value;
+                }
+            }
+
+            @Root
+            public static class Relation{
+                @Attribute
+                public String ref;
+                @Attribute
+                public String type;
             }
 
             @Root
@@ -294,6 +319,12 @@ public class Lift {
         }
 
         @Root
+        public static class Note{
+            @Element
+            public Form form;
+        }
+
+        @Root
         public static class Relation {
             @Attribute
             public String type;
@@ -311,7 +342,7 @@ public class Lift {
 
     @Root
     public static class Form {
-        @Element
+        @Element(required = false)
         public TextC text;
         @Attribute(required = false)
         public String lang;
@@ -330,7 +361,7 @@ public class Lift {
 
     @Root
     public static class TextC {
-        @Text
+        @Text(required = false)
         public String text;
     }
 
@@ -340,8 +371,8 @@ public class Lift {
         public String tag;
         @Attribute(required = false)
         public String type;
-        @Element
-        public Form form;
+        @ElementList(inline = true)
+        public List<Form> form;
     }
 
     public static class ExampleStr implements Serializable {

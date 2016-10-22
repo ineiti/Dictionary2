@@ -57,7 +57,7 @@ public class WordDetail extends AppCompatActivity {
         if (size > 1) {
             countStr = String.format(" (%d)", counter + 1);
         }
-        addLine(tl, entries.get("Meaning") + countStr, lcd.GlossDef(), search);
+        addLine(tl, countStr, lcd.GlossDef(), search);
         addLine(tl, "=", lcd.Synonym, "");
         addLine(tl, "≠", lcd.Antonym, "");
         addLine(tl, entries.get("Examples"), lcd.ExamplesString(), search);

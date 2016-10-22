@@ -58,12 +58,9 @@ public class Translate extends AppCompatActivity {
         tvLangSrcRtL = (TextView) findViewById(R.id.tvLangSrcRtL);
         tvLangDst = (TextView) findViewById(R.id.tvLangDst);
 
-        String liftFile = "teda-fr-en-ar.lift";
-        // Shorter file for faster tests
-        //String liftFile = "teda-short.lift";
-        loadingDialog = ProgressDialog.show(Translate.this, "Please wait...",
-                "Loading database " + liftFile);
-        new LoadBackground().execute(liftFile);
+        loadingDialog = ProgressDialog.show(Translate.this, "Please wait,",
+                "Loading database");
+        new LoadBackground().execute();
         toasting = false;
         setKeyListener();
         setListItemListener();
@@ -232,12 +229,7 @@ public class Translate extends AppCompatActivity {
 
         protected Long doInBackground(String... names) {
             try {
-                if (names.length < 1) {
-                    return 0L;
-                }
-                String name = names[0];
-                String cache = getFilesDir().getPath() + "/" + name + ".ser";
-                wordList = new WordList(cache, getAssets().open(name));
+                wordList = new WordList(getAssets().open("wordlist.cache"));
             } catch (Exception e) {
                 e.printStackTrace();
             }

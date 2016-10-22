@@ -66,11 +66,31 @@ public class WordList {
         }
     }
 
+    // Directly loading the cache
+    public WordList(InputStream cache) throws Exception{
+        ObjectInputStream ois = new ObjectInputStream(cache);
+        int cacheVersion = (int) ois.readObject();
+        if (cacheVersion != versionId) {
+            System.out.println("Cache-version mismatch");
+            Log.d("Lift", "Version mismatch.");
+            ois.close();
+        } else {
+            Log.i("WordList", "Initializing internal variables");
+            System.out.println("Initializing internal variables");
+            TranslationList = (Map<String, SortedMap<String, LiftCache>>) ois.readObject();
+            LanguageBase = (String) ois.readObject();
+            Languages = (List<String>) ois.readObject();
+            ois.close();
+            Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.size()));
+            Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.get("en").size()));
+        }
+    }
+
     // Mainly for test purposes, being able to load .lift-file from local
     // directory
     public WordList(String liftName) throws Exception {
         Log.i("WordList", System.getProperty("user.dir"));
-        FileInputStream liftFile = new FileInputStream("src/main/assets/" + liftName);
+        FileInputStream liftFile = new FileInputStream("src/test/java/org/profeda/dictionary/" + liftName);
         InitLift(liftFile);
         liftFile.close();
     }

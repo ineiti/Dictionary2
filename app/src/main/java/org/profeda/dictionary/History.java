@@ -23,7 +23,12 @@ public class History {
         if (len >= 2){
             if (entries.get(len - 1).equals(entries.get(len - 2))){
                 entries.remove(len - 1);
+                len--;
             }
+        }
+        // Don't add an entry if the last one is empty
+        if (len >= 1 && entries.get(len-1).text.equals("")){
+            entries.remove(len-1);
         }
         entries.add(new HistoryEntry(lang));
     }

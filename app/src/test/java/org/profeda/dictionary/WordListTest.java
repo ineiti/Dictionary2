@@ -1,6 +1,9 @@
 package org.profeda.dictionary;
 
 import org.junit.Test;
+
+import java.io.File;
+
 import static org.junit.Assert.*;
 
 
@@ -9,6 +12,19 @@ import static org.junit.Assert.*;
  */
 
 public class WordListTest {
+
+    @Test
+    public void testCacheWrite() throws Exception {
+        String liftName = "teda-fr-en-ar.5.lift";
+        String cacheName = "src/main/assets/wordlist.cache";
+        File f = new File(cacheName);
+        f.delete();
+        WordList wordList = new WordList(liftName);
+        System.out.println("Wordlist loaded");
+        wordList.WriteCache(cacheName);
+        assertTrue(f.exists());
+    }
+
     @Test
     public void testDictSortEval() throws Exception{
         assertEquals(1, WordList.dictSortEval("he", "he"));

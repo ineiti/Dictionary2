@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  */
 public class LiftTest {
     public WordList wordList;
-    private String liftName = "teda-fr-en-ar.lift";
+    private String liftName = "teda-fr-en-ar.4.lift";
     private String cacheName = "src/main/assets/teda.cache";
 
     @Test
@@ -29,7 +29,7 @@ public class LiftTest {
         System.out.println("WordList version " + wordList.versionId);
         System.out.println(wordList.lift.entry.get(0).sense.get(0).gloss.get(1).lang);
         assertEquals("0.13", wordList.lift.version);
-        assertEquals(0x10702, wordList.versionId);
+        assertEquals(0x10802, wordList.versionId);
     }
 
 

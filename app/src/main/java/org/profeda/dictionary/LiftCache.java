@@ -46,12 +46,21 @@ public class LiftCache implements Serializable {
                 if (ref != null) {
                     Cross.add(ref.getOriginal());
                 } else {
-                    System.out.println("LiftCache didn't find ref: " + c);
+                    System.out.println("LiftCache in -"+e.getOriginal()+"- didn't find cross-ref: " + c);
                 }
             }
             Senses = new ArrayList<LiftCacheDefinition>();
-            for (Lift.Entry.Sense s : e.getSenses()) {
-                Senses.add(new LiftCacheDefinition(s, tr));
+            if (e.sense == null) {
+                System.out.println("No sense for: " + e.getOriginal());
+            } else {
+                for (Lift.Entry.Sense s : e.getSenses()) {
+                    LiftCacheDefinition lcd = new LiftCacheDefinition(s, tr);
+                    if (lcd.GlossDef() == "") {
+                        System.out.println("Empty sense for " + Original);
+                    } else {
+                        Senses.add(lcd);
+                    }
+                }
             }
             Searchable = Language.deAccent(Original);
             SearchableSenses = new ArrayList<>();
