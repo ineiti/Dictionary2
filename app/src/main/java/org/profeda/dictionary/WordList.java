@@ -35,8 +35,8 @@ public class WordList {
     Map<String, SortedMap<String, LiftCache>> TranslationList;
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
-    public static int versionMinor = 8;
-    public static int versionPatch = 2;
+    public static int versionMinor = 9;
+    public static int versionPatch = 1;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
     // If versionTest is > 0, then this version is used when writing
@@ -68,6 +68,7 @@ public class WordList {
 
     // Directly loading the cache
     public WordList(InputStream cache) throws Exception{
+        Log.i("wl", "Loading wordlist");
         ObjectInputStream ois = new ObjectInputStream(cache);
         int cacheVersion = (int) ois.readObject();
         if (cacheVersion != versionId) {
@@ -210,7 +211,11 @@ public class WordList {
             for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
                 if (entry.getValue().matches(reg)){
 //                    Log.i("Found", entry.getKey());
-                    result.put(entry.getValue().Searchable, entry.getValue());
+                    String word = entry.getValue().Searchable;
+                    while (result.containsKey(word)){
+                        word += " ";
+                    }
+                    result.put(word, entry.getValue());
 //                    found++;
 //                    if (found > 10){
 //                        break;
@@ -296,7 +301,11 @@ public class WordList {
                 List<String> results = entry.getValue().matchesSenses(reg);
                 if (results.size() > 0){
                     for (String res: results){
-                        result.put(res, entry.getValue());
+                        String word = res;
+                        while (result.containsKey(word)){
+                            word += " ";
+                        }
+                        result.put(word, entry.getValue());
                     }
                 }
             }

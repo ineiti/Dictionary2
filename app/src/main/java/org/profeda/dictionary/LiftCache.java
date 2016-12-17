@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * Only for a translation to a given language
  */
 public class LiftCache implements Serializable {
-    private static final long serialVersionUID = 3141592657316227L;
+    private static final long serialVersionUID = 3141592657316228L;
     // If we use a 'deAccent'ized map to point to here, we can
     // use this string to get back the original
     public String Original;
@@ -46,17 +46,17 @@ public class LiftCache implements Serializable {
                 if (ref != null) {
                     Cross.add(ref.getOriginal());
                 } else {
-                    System.out.println("LiftCache in -"+e.getOriginal()+"- didn't find cross-ref: " + c);
+//                    System.out.println("LiftCache in -"+e.getOriginal()+"- didn't find cross-ref: " + c);
                 }
             }
             Senses = new ArrayList<LiftCacheDefinition>();
             if (e.sense == null) {
-                System.out.println("No sense for: " + e.getOriginal());
+//                System.out.println("No sense for: " + e.getOriginal());
             } else {
                 for (Lift.Entry.Sense s : e.getSenses()) {
                     LiftCacheDefinition lcd = new LiftCacheDefinition(s, tr);
                     if (lcd.GlossDef() == "") {
-                        System.out.println("Empty sense for " + Original);
+//                        System.out.println("Empty sense for " + Original);
                     } else {
                         Senses.add(lcd);
                     }
@@ -73,6 +73,12 @@ public class LiftCache implements Serializable {
     // Returns whether this entry matches the search string, storing
     // the de-accentized string in the cache
     public boolean matches(Pattern reg) {
+        return reg.matcher(Searchable).matches();
+    }
+
+    // Returns whether a string matches partially or completely the entry.
+    public boolean matchesString(String str){
+        Pattern reg = Pattern.compile(".*\\b" + str + ".*", Pattern.CASE_INSENSITIVE);
         return reg.matcher(Searchable).matches();
     }
 

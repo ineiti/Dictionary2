@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  */
 public class LiftTest {
     public WordList wordList;
-    private String liftName = "teda-fr-en-ar.4.lift";
+    private String liftName = "teda-fr-en-ar.7.lift";
     private String cacheName = "src/main/assets/teda.cache";
 
     @Test
@@ -222,6 +222,7 @@ public class LiftTest {
         System.out.println(melti.get("melti_55d65bb1-cdc9-40e5-af8d-5bcbc40df8b2").String());
     }
 
+    @Test
     public void testMultiDest() throws Exception {
         loadWholeFile();
 
@@ -230,15 +231,20 @@ public class LiftTest {
         System.out.println(fromTudaga1.get("adigibi").String());
         System.out.println(fromTudaga2.get("aci").String());
 
-        Map<String, LiftCache> old = wordList.searchWordSource("old woman", "en");
+        Map<String, LiftCache> old = wordList.searchWordSource("^old woman$", "en");
         System.out.println(old);
         assertTrue(old.size() == 2);
+
+        old = wordList.searchWordSource("^dead$", "en");
+        System.out.println(old);
+        assertTrue(old.size() == 3);
     }
 
 
+    @Test
     public void testMultiSource() throws Exception {
         loadWholeFile();
-        Map<String, LiftCache> fromTudaga1 = wordList.searchWord("bidi", "en");
+        Map<String, LiftCache> fromTudaga1 = wordList.searchWord("^bidi$", "en");
         System.out.println(fromTudaga1);
         System.out.println(fromTudaga1.get("bidi").String());
         System.out.println(fromTudaga1.get("bidi ").String());
@@ -248,7 +254,7 @@ public class LiftTest {
         assertTrue(fromTudaga1.size() == 4);
     }
 
-
+//    @Test
     public void testSearchExample() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchExamples("huna", "en");
@@ -260,7 +266,7 @@ public class LiftTest {
         assertTrue(result.size() == 25);
     }
 
-
+    @Test
     public void testLearnRegexp() {
         String src1 = "1: english words\n2: more words";
         String src2 = "more words";
@@ -271,7 +277,7 @@ public class LiftTest {
         System.out.println(m1.group(2));
     }
 
-
+    @Test
     public void testArabic() throws Exception {
         loadWholeFile();
         Map<String, LiftCache> result = wordList.searchWord("abba", "ayl");
@@ -287,7 +293,7 @@ public class LiftTest {
         System.out.println();
     }
 
-
+    @Test
     public void testArabic2() throws Exception {
         loadWholeFile();
         String search1 = "اب";
@@ -296,6 +302,17 @@ public class LiftTest {
         System.out.println(result);
         result = wordList.searchWordSource(search2, "ayl");
         System.out.println(result);
+    }
+
+    @Test
+    public void testResultsSource() throws Exception {
+        loadWholeFile();
+        String search = "play";
+        Map<String, LiftCache> result = wordList.searchWordSource(search, "en");
+        System.out.println(result);
+        LiftCache play = result.get("slide down play game");
+        System.out.println(play.Original);
+        System.out.println(play.Senses.toString());
     }
 
     private void loadWholeFile() throws Exception {

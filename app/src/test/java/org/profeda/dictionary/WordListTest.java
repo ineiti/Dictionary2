@@ -15,8 +15,8 @@ public class WordListTest {
 
     @Test
     public void testCacheWrite() throws Exception {
-        String liftName = "teda-fr-en-ar.5.lift";
-        String cacheName = "src/main/assets/wordlist.cache";
+        String liftName = "teda-fr-en-ar.7.lift";
+        String cacheName = "src/main/assets/teda.cache";
         File f = new File(cacheName);
         f.delete();
         WordList wordList = new WordList(liftName);

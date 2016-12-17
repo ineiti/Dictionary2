@@ -3,6 +3,7 @@ package org.profeda.dictionary;
 import android.util.Log;
 
 import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
@@ -103,8 +104,8 @@ public class Lift {
 
         @Element(name = "lexical-unit", required = false)
         public LexicalUnit lexicalUnit;
-        @Element(required = false)
-        public Trait trait;
+        @ElementList(inline = true, required = false)
+        public List<Trait> trait;
         @Element(required = false)
         public Field field;
         @Element(required = false)
@@ -117,6 +118,10 @@ public class Lift {
         public List<Relation> relation;
         @Element(required = false)
         public Note note;
+        @Element(required = false)
+        public Etymology etymology;
+        @Element(required = false)
+        public Variant variant;
 
 
         // Returns the original string
@@ -128,7 +133,10 @@ public class Lift {
         public String getPronunciation() {
             if (pronunciation != null) {
                 if (pronunciation.size() > 0 && pronunciation.get(0) != null) {
-                    return pronunciation.get(0).form.text.text;
+                    Pronunciation p = pronunciation.get(0);
+                    if (p.form != null && p.form.text != null) {
+                        return p.form.text.text;
+                    }
                 }
             }
             return null;
@@ -169,7 +177,7 @@ public class Lift {
 
         @Root
         public static class Pronunciation {
-            @Element
+            @Element(required = false)
             public Form form;
         }
 
@@ -177,6 +185,8 @@ public class Lift {
         public static class Sense {
             @Attribute
             public String id;
+            @Attribute(required = false)
+            public String order;
             @ElementList(inline = true, required = false)
             public List<Gloss> gloss;
             @ElementList(inline = true, required = false)
@@ -187,8 +197,14 @@ public class Lift {
             public List<Field> field;
             @ElementList(inline = true, required = false)
             public List<Relation> relation;
+            @ElementList(inline = true, required = false)
+            public List<Reversal> reversal;
             @Element(required = false, name = "grammatical-info")
             public GrammaticalInfo grammaticalInfo;
+            @Element(required = false)
+            public Illustration illustration;
+            @Element(required = false)
+            public Trait trait;
 
             // Searches for the gloss
             public String getGloss(String translation) {
@@ -223,7 +239,7 @@ public class Lift {
                 if (example != null) {
                     for (Example e : example) {
                         if (e != null && e.form != null) {
-                            if (e.translation == null) {
+                            if (e.translation == null || e.translation.form == null) {
                                 // Some examples don't have a translation
                                 ex.add(new ExampleStr(e.form.text.text, ""));
                             } else {
@@ -290,6 +306,22 @@ public class Lift {
             }
 
             @Root
+            public static class Reversal{
+                @Attribute
+                public String type;
+                @ElementList(inline = true)
+                public List<Form> form;
+                @Element(required = false)
+                public Main main;
+
+                @Root
+                public static class Main{
+                    @Element
+                    public Form form;
+                }
+            }
+
+            @Root
             public static class Definition {
                 @ElementList(inline = true)
                 public List<Form> form;
@@ -305,8 +337,10 @@ public class Lift {
 
                 @Root
                 public static class Translation {
-                    @ElementList(inline = true)
+                    @ElementList(required = false, inline = true)
                     public List<Form> form;
+                    @Attribute(required = false)
+                    public String type;
                 }
             }
 
@@ -314,14 +348,30 @@ public class Lift {
             public static class GrammaticalInfo {
                 @Attribute
                 public String value;
+                @ElementList(inline = true, required = false)
+                public List<Trait> trait;
+            }
+
+            @Root
+            public static class Illustration{
+                @Attribute
+                public String href;
+                @Element(required = false)
+                public Label label;
+
+                @Root
+                public static class Label{
+                    @Element
+                    public Form form;
+                }
             }
 
         }
 
         @Root
         public static class Note{
-            @Element
-            public Form form;
+            @ElementList(inline=true)
+            public List<Form> form;
         }
 
         @Root
@@ -330,6 +380,10 @@ public class Lift {
             public String type;
             @Attribute
             public String ref;
+            @Attribute(required = false)
+            public String order;
+            @ElementList(inline = true, required = false)
+            public List<Trait> trait;
         }
 
         @Root
@@ -337,8 +391,25 @@ public class Lift {
             @Attribute
             public String value;
         }
-    }
 
+        @Root
+        public static class Etymology{
+            @Attribute
+            public String type;
+            @Attribute
+            public String source;
+            @ElementList(inline = true, required = false)
+            public List<Form> form;
+        }
+
+        @Root
+        public static class Variant{
+            @Element(required = false)
+            public Form form;
+            @Element
+            public Trait trait;
+        }
+    }
 
     @Root
     public static class Form {

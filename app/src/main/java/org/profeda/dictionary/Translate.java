@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.profeda.dictionary.WordList.versionMajor;
+import static org.profeda.dictionary.WordList.versionMinor;
+import static org.profeda.dictionary.WordList.versionPatch;
+
 public class Translate extends AppCompatActivity {
     public static WordList wordList;
     Boolean toasting;
@@ -68,11 +72,11 @@ public class Translate extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         // As there is always a growing element at the end, size == 1 means the history
         // is empty.
         History.HistoryEntry he = history.getLast();
-        if (he.LangID == -1){
+        if (he.LangID == -1) {
             Log.i("back", "finishing");
             finish();
             return;
@@ -167,10 +171,11 @@ public class Translate extends AppCompatActivity {
                 Map<String, LiftCache> result = wordList.searchWordSource(word, getLangSource(LangId));
                 if (result != null) {
                     for (Map.Entry<String, LiftCache> tr : result.entrySet()) {
-                        searchResultString.add(tr.getValue().Original);
+                        LiftCache v = tr.getValue();
+                        searchResultString.add(v.Original);
                         TranslationItem newsData = new TranslationItem();
-                        newsData.source = tr.getKey();
-                        newsData.translation = tr.getValue().Original;
+                        newsData.source = v.Senses.get(0).Gloss;
+                        newsData.translation = v.Original;
                         resultList.add(newsData);
                     }
                 }
@@ -229,7 +234,7 @@ public class Translate extends AppCompatActivity {
 
         protected Long doInBackground(String... names) {
             try {
-                wordList = new WordList(getAssets().open("wordlist.cache"));
+                wordList = new WordList(getAssets().open("teda.cache"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -286,6 +291,7 @@ public class Translate extends AppCompatActivity {
     // Convert the index in the menu to the source language
     // Use the fact that the sources and destinations are symmetrical
     public String getLangSource(int index) {
+        Log.i("gls:", "wordlist is" + wordList);
         int langs = wordList.Languages.size();
         return getLangDest((index + langs) % (langs * 2));
     }
@@ -293,7 +299,9 @@ public class Translate extends AppCompatActivity {
     public void showAbout() {
         AlertDialog dialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Dictionary-app\nBased on SIL Lift-files\n(c) 2016 by Linus Gasser\n" +
+        String app = String.format("Dictionary-app %d.%d.%d\n",
+                versionMajor, versionMinor, versionPatch);
+        builder.setMessage(app + "Based on SIL Lift-files\n(c) 2016 by Linus Gasser\n" +
                 "ineiti@profeda.org")
                 .setTitle("About");
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
