@@ -12,17 +12,18 @@ import static org.junit.Assert.*;
  */
 
 public class WordListTest {
+    String liftName = "teda-fr-en-ar.161223.lift";
+    String cacheName = "src/main/assets/teda.cache";
 
     @Test
     public void testCacheWrite() throws Exception {
-        String liftName = "teda-fr-en-ar.7.lift";
-        String cacheName = "src/main/assets/teda.cache";
         File f = new File(cacheName);
         f.delete();
         WordList wordList = new WordList(liftName);
         System.out.println("Wordlist loaded");
         wordList.WriteCache(cacheName);
         assertTrue(f.exists());
+        System.out.println("Wordlist saved");
     }
 
     @Test

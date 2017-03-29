@@ -36,7 +36,7 @@ public class WordList {
     // Create a version-int out of major, minor and patch
     public static int versionMajor = 1;
     public static int versionMinor = 9;
-    public static int versionPatch = 1;
+    public static int versionPatch = 3;
     public static int versionId = versionMajor * 0x10000 + versionMinor * 0x100 +
             versionPatch;
     // If versionTest is > 0, then this version is used when writing

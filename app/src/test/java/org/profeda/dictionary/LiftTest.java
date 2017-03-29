@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  */
 public class LiftTest {
     public WordList wordList;
-    private String liftName = "teda-fr-en-ar.7.lift";
+    private String liftName = "teda-fr-en-ar.161223.lift";
     private String cacheName = "src/main/assets/teda.cache";
 
     @Test

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * Only for a translation to a given language
  */
 public class LiftCache implements Serializable {
-    private static final long serialVersionUID = 3141592657316228L;
+    private static final long serialVersionUID = 3141592657316229L;
     // If we use a 'deAccent'ized map to point to here, we can
     // use this string to get back the original
     public String Original;

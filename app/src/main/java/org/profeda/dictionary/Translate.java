@@ -68,6 +68,7 @@ public class Translate extends AppCompatActivity {
         toasting = false;
         setKeyListener();
         setListItemListener();
+
         Log.i("oncreate", "finished");
     }
 
@@ -209,8 +210,6 @@ public class Translate extends AppCompatActivity {
                     }
                 }
             }
-
-
         }
         lvTranslations.setAdapter(new TranslationListView(this, resultList));
     }
@@ -219,13 +218,13 @@ public class Translate extends AppCompatActivity {
     public void showSearch(String text) {
         Log.i("showSearchT", text);
         etSearch.setText(text);
-        showSearch();
+//        showSearch();
     }
 
     // Cleans the search field
     public void deleteSearch(View b) {
         history.addItem(LangId);
-        showSearch("");
+        etSearch.setText("");
     }
 
     // Loads the lift-database in the background and dismisses the progressdialog
@@ -258,7 +257,9 @@ public class Translate extends AppCompatActivity {
         LangId = id;
         String source = getLangSource(id);
         String dest = getLangDest(id);
-        String src = Language.langToFull(source) + ": ";
+        String src = Language.langToFull(source);
+        etSearch.setHint(src);
+        src +=  ": ";
         String srcRtL = "";
         if (WordList.hasRightToLeft(src)) {
             srcRtL = src;
@@ -273,7 +274,7 @@ public class Translate extends AppCompatActivity {
         Log.i("setLanguages", "title will be: " + title);
         ActionMenuItemView mitem = (ActionMenuItemView) findViewById(R.id.action_language);
         mitem.setTitle(title);
-        showSearch();
+        showSearch("");
     }
 
 

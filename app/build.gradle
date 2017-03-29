@@ -2,14 +2,14 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion '23.0.2'
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "org.profeda.dictionary"
         minSdkVersion 10
         targetSdkVersion 22
-        versionCode 11
-        versionName "1.9.1"
+        versionCode 14
+        versionName "1.9.3-1"
     }
     buildTypes {
         release {

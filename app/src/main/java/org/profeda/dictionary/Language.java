@@ -1,5 +1,7 @@
 package org.profeda.dictionary;
 
+import android.util.Log;
+
 import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -26,10 +28,16 @@ public class Language {
             put("Examples", "أَمْثال");
             put("Additional", "أَمْثال إِضافيّة ");
         }};
+        final HashMap<String, String> trTudaga = new HashMap<String, String>() {{
+            put("Meaning", "المعنى ");
+            put("Examples", "أَمْثال");
+            put("Additional", "أَمْثال إِضافيّة ");
+        }};
         return new HashMap<String, HashMap<String, String>>() {{
-            put("en", trEnglish);
-            put("fr", trFrench);
+            put("tuq", trTudaga);
             put("ayl", trArab);
+            put("fr", trFrench);
+            put("en", trEnglish);
         }};
     }
 

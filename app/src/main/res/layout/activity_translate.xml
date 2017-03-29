@@ -4,7 +4,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".Translate"
-    android:background="#010101">
+    >
+    <!--android:background="#010101"-->
 
     <LinearLayout
         android:orientation="vertical"
@@ -23,37 +24,37 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="---:"
                 android:id="@+id/tvLangSrc"
-                android:textColor="#ffffff"
                 android:onClick="changeTranslationDirectionSearchList"
-                android:background="#200000"
                 android:gravity="center_vertical" />
+            <!--android:background="#200000"-->
+            <!--android:textColor="#ffffff"-->
 
             <EditText
+                android:id="@+id/etSearch"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/etSearch"
-                android:hint="Search"
-                android:textColor="#ffffff"
-                android:background="#555555"
                 android:layout_weight="1"
-                android:maxLines="1"
-                android:inputType="textNoSuggestions" />
+                android:hint="Search"
+                android:inputType="textNoSuggestions"
+                android:maxLines="1" />
+            <!--android:background="#555555"-->
+            <!--android:textColor="#ffffff"-->
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:id="@+id/tvLangSrcRtL"
-                android:textColor="#ffffff"
                 android:clickable="true"
                 android:onClick="changeTranslationDirectionSearchList" />
+            <!--android:textColor="#ffffff"-->
 
             <Button
+                android:id="@+id/clearButton"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="20pt"
                 android:layout_height="20pt"
                 android:background="@drawable/delete"
-                android:id="@+id/clearButton"
                 android:onClick="deleteSearch" />
 
         </LinearLayout>
@@ -69,7 +70,8 @@
                 android:id="@+id/imageView"
                 android:src="@drawable/doublearrow"
                 android:onClick="changeTranslationDirectionSearchList"
-                android:background="#200000" />
+                />
+            <!--android:background="#200000"-->
 
             <TextView
                 android:layout_width="fill_parent"
@@ -77,20 +79,19 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="Destination language"
                 android:id="@+id/tvLangDst"
-                android:textColor="#ffffff"
                 android:gravity="center"
                 android:clickable="true"
                 android:onClick="changeTranslationDirectionSearchList"
                 android:textSize="30dp"
-                android:background="#200000" />
+                />
+            <!--android:background="#200000"-->
+            <!--android:textColor="#ffffff"-->
         </LinearLayout>
 
         <ListView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/translations"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
             android:clickable="true"
             android:choiceMode="none" />
     </LinearLayout>

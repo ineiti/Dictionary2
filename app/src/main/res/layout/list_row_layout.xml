@@ -11,9 +11,9 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
-        android:textColor="#dfd"
         android:typeface="sans"
         android:clickable="false" />
+    <!--android:textColor="#dfd"-->
 
     <TextView
         android:id="@+id/translation"
@@ -21,27 +21,27 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/source"
         android:layout_marginTop="5dip"
-        android:textColor="#ddffff"
         android:textSize="16sp"
         android:clickable="false" />
+    <!--android:textColor="#ddffff"-->
 
     <TextView
         android:id="@+id/example"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/translation"
-        android:textColor="#ffddff"
         android:textSize="16sp"
         android:clickable="false" />
+    <!--android:textColor="#ffddff"-->
 
     <TextView
         android:id="@+id/refarab"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/example"
-        android:textColor="#ffcc80"
         android:textSize="16sp"
         android:clickable="false" />
+    <!--android:textColor="#ffcc80"-->
 
     <View
         android:id="@+id/hor_space"
