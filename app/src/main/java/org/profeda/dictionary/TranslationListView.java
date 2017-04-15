@@ -1,6 +1,8 @@
 package org.profeda.dictionary;
 
 import android.content.Context;
+import android.text.Html;
+import android.text.SpannableString;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 
 /**
@@ -55,17 +56,26 @@ public class TranslationListView extends BaseAdapter {
 
         TranslationItem vh = listData.get(position);
         if (vh != null) {
-            holder.translation.setText(vh.translation);
-            setHeight(vh.source, holder.source);
-            setHeight(vh.example, holder.example);
-            setHeight(vh.refarab, holder.refarab);
+            setTextHtml(holder.translation, vh.translation);
+            setHeight(holder.source, vh.source);
+            setHeight(holder.example, vh.example);
+            setHeight(holder.refarab, vh.reftudaga);
         }
         return convertView;
     }
 
-    private void setHeight(String str, TextView tv){
+    private void setTextHtml(TextView tv, String str){
+        if (str != null && str.length() > 0) {
+            Log.i("tlv: ", str);
+            SpannableString text = new SpannableString(Html.fromHtml(str));
+            tv.setText(text, TextView.BufferType.SPANNABLE);
+        }
+    }
+
+    private void setHeight(TextView tv, String str){
         if (str != null && str.length() > 0){
-            tv.setText(str);
+            Log.i("tlv: ", str);
+            setTextHtml(tv, str);
             tv.setMaxHeight(100);
         } else {
             tv.setMaxHeight(0);

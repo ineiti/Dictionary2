@@ -19,7 +19,7 @@ public class WordListTest {
     public void testCacheWrite() throws Exception {
         File f = new File(cacheName);
         f.delete();
-        WordList wordList = new WordList(liftName);
+        WordList wordList = new WordList(liftName, Translate.initLanguages());
         System.out.println("Wordlist loaded");
         wordList.WriteCache(cacheName);
         assertTrue(f.exists());

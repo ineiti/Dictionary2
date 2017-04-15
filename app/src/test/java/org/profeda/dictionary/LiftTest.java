@@ -19,7 +19,27 @@ import static org.junit.Assert.*;
 public class LiftTest {
     public WordList wordList;
     private String liftName = "teda-fr-en-ar.161223.lift";
-    private String cacheName = "src/main/assets/teda.cache";
+    private String cacheName = "app/src/main/assets/teda.cache";
+
+    @Test
+    public void testCacheWrite() throws Exception {
+        System.out.println(new java.io.File( "." ).getCanonicalPath());
+        File f = new File(cacheName);
+        f.delete();
+        wordList = new WordList(liftName, Translate.initLanguages());
+        System.out.println("Wordlist loaded");
+        wordList.WriteCache(cacheName);
+        assertTrue(f.exists());
+    }
+
+    @Test
+    public void testRefTudaga() throws Exception{
+        loadWholeFile();
+        Map<String, LiftCache> results = wordList.searchWord("cilab", "tuq");
+        LiftCache result = results.get("cilab");
+        System.out.println(result.RefTudaga);
+        assertTrue(result.RefTudaga.contains("bigi2"));
+    }
 
     @Test
     public void testLiftLoad() throws Exception {
@@ -128,19 +148,9 @@ public class LiftTest {
 
     @Test
     public void testLanguages() throws Exception {
-        wordList = new WordList("test-languages-1.lift");
-        System.out.println(wordList.Languages);
-        assertTrue(wordList.Languages.size() == 3);
-    }
-
-    @Test
-    public void testCacheWrite() throws Exception {
-        File f = new File(cacheName);
-        f.delete();
-        wordList = new WordList(liftName);
-        System.out.println("Wordlist loaded");
-        wordList.WriteCache(cacheName);
-        assertTrue(f.exists());
+        wordList = new WordList("test-languages-1.lift", Translate.initLanguages());
+        System.out.println(wordList.LanguageBase);
+//        assertTrue(wordList.Languages.size() == 3);
     }
 
     @Test
@@ -207,9 +217,9 @@ public class LiftTest {
         Map<String, LiftCache> arabic = wordList.searchWord("aci", "ayl");
         String arabic_str = arabic.get("aci").String();
         System.out.println(arabic_str);
-        System.out.println(Language.deAccent(arabic_str));
+        System.out.println(WordList.deAccent(arabic_str));
 
-        String ret = Language.deAccent("hello(there)");
+        String ret = WordList.deAccent("hello(there)");
         assertTrue(ret.equals("hellothere"));
     }
 
@@ -288,8 +298,8 @@ public class LiftTest {
 
         System.out.println(abba);
         System.out.println(arab);
-        System.out.println(Language.deAccent(search2));
-        System.out.println(Language.deAccent(arab));
+        System.out.println(WordList.deAccent(search2));
+        System.out.println(WordList.deAccent(arab));
         System.out.println();
     }
 
@@ -319,6 +329,6 @@ public class LiftTest {
         System.out.println("Working Directory = " +
                 System.getProperty("user.dir"));
 
-        wordList = new WordList(liftName);
+        wordList = new WordList(liftName, Translate.initLanguages());
     }
 }

@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannableString;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -16,7 +18,6 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -25,7 +26,7 @@ import java.util.regex.Pattern;
 public class WordDetail extends AppCompatActivity {
     LiftCache liftCache;
     String dest;
-    HashMap<String, String> entries;
+    Languages lang;
     Map<String, LiftCacheDefinition> exampleResults;
 
     @Override
@@ -35,13 +36,13 @@ public class WordDetail extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         liftCache = (LiftCache) bundle.get("EXTRA_LIFTCACHE");
         dest = (String) bundle.get("EXTRA_DEST");
-        entries = (HashMap<String, String>) bundle.get("EXTRA_ENTRIES");
+        lang = (Languages) bundle.get("EXTRA_ENTRIES");
         String search = liftCache.Original;
         setTitle(search);
         Log.i("WordDetail", liftCache.toString());
 
         TableLayout tl = (TableLayout) findViewById(R.id.tlWordDetail);
-        addLine(tl, "->", liftCache.RefArab, "");
+        addLine(tl, "->", liftCache.RefTudaga, "");
         addLine(tl, "->", liftCache.BaseForm, "");
         addLine(tl, "->", liftCache.CrossString(), "");
         int senses = liftCache.Senses.size();
@@ -57,10 +58,11 @@ public class WordDetail extends AppCompatActivity {
         if (size > 1) {
             countStr = String.format(" (%d)", counter + 1);
         }
-        addLine(tl, countStr, lcd.GlossDef(), search);
+        addLine(tl, countStr, new ColorText().addTextColor(lcd.GlossDef(), lang.Dst().Color).result,
+                search);
         addLine(tl, "=", lcd.Synonym, "");
         addLine(tl, "≠", lcd.Antonym, "");
-        addLine(tl, entries.get("Examples"), lcd.ExamplesString(), search);
+        addLine(tl, lang.Dst().Examples, lcd.ExamplesString(lang), search);
     }
 
     public void addLine(TableLayout tl, String label, String text, String search) {
@@ -78,7 +80,7 @@ public class WordDetail extends AppCompatActivity {
 
         protected Long doInBackground(String... searchStr) {
             try {
-                String search = Language.deAccent(searchStr[0]);
+                String search = WordList.deAccent(searchStr[0]);
                 exampleResults = new TreeMap<String, LiftCacheDefinition>();
 
                 String regex = ".*\\b" + search + "\\b.*";
@@ -87,8 +89,8 @@ public class WordDetail extends AppCompatActivity {
                     if (isCancelled()) break;
                     for (LiftCacheDefinition sense : entry.getValue().Senses) {
                         for (Lift.ExampleStr ex : sense.Examples) {
-                            if (Language.deAccent(ex.Example).matches(regex)) {
-                                if (!entry.getKey().equals(Language.deAccent(liftCache.Original))) {
+                            if (WordList.deAccent(ex.Example).matches(regex)) {
+                                if (!entry.getKey().equals(WordList.deAccent(liftCache.Original))) {
                                     exampleResults.put(entry.getValue().Original, sense);
                                     //publishProgress(0);
                                 }
@@ -116,10 +118,10 @@ public class WordDetail extends AppCompatActivity {
         protected void onPostExecute(Long result) {
             if (exampleResults.size() > 0) {
                 TableLayout tl = (TableLayout) findViewById(R.id.tlWordDetail);
-                addRow(tl, "*** " + entries.get("Additional") + " ***", "", "");
+                addRow(tl, "*** " + lang.Dst().Additional + " ***", "", "");
                 for (Map.Entry<String, LiftCacheDefinition> entry : exampleResults.entrySet()) {
-                    String word = entry.getKey();
-                    String example = entry.getValue().ExamplesString();
+                    String word = new ColorText().addTextColor(entry.getKey(), lang.Dst().Color).result;
+                    String example = entry.getValue().ExamplesString(lang);
                     // Create header with word
                     addRow(tl, word, "", word);
                     // Add example below
@@ -147,13 +149,16 @@ public class WordDetail extends AppCompatActivity {
                                   }
                               }
         );
-        tl.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT));
+        tl.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT,
+                TableLayout.LayoutParams.WRAP_CONTENT));
     }
 
     public TextView makeTextView(String str, int span, boolean gray) {
         TextView tv = new TextView(getApplicationContext());
-        tv.setText(str);
-        TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        SpannableString text = new SpannableString(Html.fromHtml(str));
+        tv.setText(text, TextView.BufferType.SPANNABLE);
+        TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT);
         tlp.setMargins(2, 2, 2, 2);
         tlp.span = span;
         tlp.weight = (gray && span == 1) ? 0f : 1f;
@@ -164,7 +169,7 @@ public class WordDetail extends AppCompatActivity {
             tv.setBackgroundColor(Color.LTGRAY);
         }
         tv.setLayoutParams(tlp);
-        tv.setTextColor(Color.WHITE);
+        tv.setTextColor(Color.BLACK);
         tv.setTextSize(22);
         return tv;
     }

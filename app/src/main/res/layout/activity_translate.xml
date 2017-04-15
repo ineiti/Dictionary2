@@ -74,16 +74,15 @@
             <!--android:background="#200000"-->
 
             <TextView
+                android:id="@+id/tvLangDst"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Destination language"
-                android:id="@+id/tvLangDst"
-                android:gravity="center"
                 android:clickable="true"
+                android:gravity="center"
                 android:onClick="changeTranslationDirectionSearchList"
-                android:textSize="30dp"
-                />
+                android:text="Destination language"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textSize="14sp" />
             <!--android:background="#200000"-->
             <!--android:textColor="#ffffff"-->
         </LinearLayout>

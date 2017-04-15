@@ -5,12 +5,10 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
+import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +26,6 @@ public class WordList {
     public Lift lift;
     // The base language of the lift-file
     public String LanguageBase;
-    // All languages where 'base'-language is translated to
-    public List<String> Languages;
     // This holds a list of all translations from source-language to the destination
     // languages, one map-entry per destination language
     Map<String, SortedMap<String, LiftCache>> TranslationList;
@@ -43,31 +39,8 @@ public class WordList {
     // the cache file, so the 'detect old' test can work out
     public int versionTest = 0;
 
-    // New WordList - takes the name of a .lift-file
-    // If the cache-file exists, reads it and does some checks on
-    // whether it's still up-to-date. It uses the program-version,
-    // size of the .lift-file and it's date.
-    // If the cache-file doesn't exist, reads in .lift-file and
-    // saves the cache-file.
-    // Call like lift.ReadCache(new FileInputStream(name));
-    public WordList(String cacheName, InputStream liftName) throws Exception {
-        Log.i("WordList", "initialising");
-        if (!LoadCache(cacheName)) {
-            Log.i("WordList", "loading cache failed");
-            System.out.println("Loading cachefailed");
-            // If the cache file hasn't been loaded, we load the whole .lift-file
-            // and write the new cache
-            Log.i("WordList", "Loading lift-file ");
-            InitLift(liftName);
-            WriteCache(cacheName);
-        } else {
-            System.out.println("Successfully loaded cache");
-            Log.i("WordList", "Loading cache succeeded");
-        }
-    }
-
     // Directly loading the cache
-    public WordList(InputStream cache) throws Exception{
+    public WordList(InputStream cache) throws Exception {
         Log.i("wl", "Loading wordlist");
         ObjectInputStream ois = new ObjectInputStream(cache);
         int cacheVersion = (int) ois.readObject();
@@ -80,19 +53,18 @@ public class WordList {
             System.out.println("Initializing internal variables");
             TranslationList = (Map<String, SortedMap<String, LiftCache>>) ois.readObject();
             LanguageBase = (String) ois.readObject();
-            Languages = (List<String>) ois.readObject();
             ois.close();
-            Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.size()));
-            Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.get("en").size()));
+            Log.i("WordList", "Language-size:" + String.valueOf(TranslationList.size()));
+            Log.i("WordList", "Language-size:" + String.valueOf(TranslationList.get("en").size()));
         }
     }
 
     // Mainly for test purposes, being able to load .lift-file from local
     // directory
-    public WordList(String liftName) throws Exception {
+    public WordList(String liftName, Languages l) throws Exception {
         Log.i("WordList", System.getProperty("user.dir"));
-        FileInputStream liftFile = new FileInputStream("src/test/java/org/profeda/dictionary/" + liftName);
-        InitLift(liftFile);
+        FileInputStream liftFile = new FileInputStream("app/src/test/java/org/profeda/dictionary/" + liftName);
+        InitLift(liftFile, l);
         liftFile.close();
     }
 
@@ -117,10 +89,9 @@ public class WordList {
                 System.out.println("Initializing internal variables");
                 TranslationList = (Map<String, SortedMap<String, LiftCache>>) ois.readObject();
                 LanguageBase = (String) ois.readObject();
-                Languages = (List<String>) ois.readObject();
                 ois.close();
-                Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.size()));
-                Log.i("WordList", "Translation-size:" + String.valueOf(TranslationList.get("en").size()));
+                Log.i("WordList", "Language-size:" + String.valueOf(TranslationList.size()));
+                Log.i("WordList", "Language-size:" + String.valueOf(TranslationList.get("en").size()));
                 return true;
             }
         } else {
@@ -130,8 +101,8 @@ public class WordList {
     }
 
     // Adds an entry to the liftcache-list, appending spaces to already available
-    // entries
-    public void AddEntry(SortedMap<String, LiftCache> tle, String src, LiftCache lc){
+    // lang
+    public void AddEntry(SortedMap<String, LiftCache> tle, String src, LiftCache lc) {
         // Hack to add multiple definitions by adding spaces
         while (tle.containsKey(src)) {
             src += " ";
@@ -141,15 +112,14 @@ public class WordList {
 
     // Setting up the TranslationList - used when the cache is not here
     // yet.
-    public void InitLift(InputStream name) throws Exception {
+    public void InitLift(InputStream name, Languages l) throws Exception {
         lift = Lift.ReadLift(name);
         System.out.println("Lift is read");
         if (lift == null) {
             throw Exception.class.newInstance();
         }
         TranslationList = new HashMap<String, SortedMap<String, LiftCache>>();
-        getLanguages();
-        for (String lang : Languages) {
+        for (String lang : l.LiftList()) {
             SortedMap<String, LiftCache> tle = new TreeMap<>();
             for (Lift.Entry e : lift.entry) {
                 if (e.lexicalUnit != null) {
@@ -174,7 +144,6 @@ public class WordList {
         }
         oos.writeObject(TranslationList);
         oos.writeObject(LanguageBase);
-        oos.writeObject(getLanguages());
         oos.close();
     }
 
@@ -191,10 +160,11 @@ public class WordList {
     // language 'dest' for all /^#{search}*/
     // Returns a map of words with LiftCaches
     public Map<String, LiftCache> searchWord(String searchOrig, String dest) {
-        final String search = Language.deAccent(searchOrig);
+        final String search = deAccent(searchOrig);
         // Comparator for implementing dictionary sorting.
         Comparator<String> dictionarySort = new Comparator<String>() {
-            @Override public int compare(String s1, String s2) {
+            @Override
+            public int compare(String s1, String s2) {
                 return WordList.dictSort(search, s1, s2);
             }
         };
@@ -208,11 +178,11 @@ public class WordList {
 
 
 //            int found = 0;
-            for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
-                if (entry.getValue().matches(reg)){
+            for (Map.Entry<String, LiftCache> entry : tl.entrySet()) {
+                if (entry.getValue().matches(reg)) {
 //                    Log.i("Found", entry.getKey());
                     String word = entry.getValue().Searchable;
-                    while (result.containsKey(word)){
+                    while (result.containsKey(word)) {
                         word += " ";
                     }
                     result.put(word, entry.getValue());
@@ -234,28 +204,28 @@ public class WordList {
     // 3. words starting with the search-pattern
     // 4. the search-pattern as a word in other phrases
     // 5. the search-pattern in other phrases
-    public static int dictSort(String search, String s1, String s2){
+    public static int dictSort(String search, String s1, String s2) {
         int sort1 = dictSortEval(search, s1);
         int sort2 = dictSortEval(search, s2);
 //        Log.i("Sorting", search + " " + s1 + " " + s2 + ":" +
 //                String.valueOf(sort1) + String.valueOf(sort2));
-        if (sort1 < sort2){
+        if (sort1 < sort2) {
             return -1;
-        } else if (sort2 < sort1){
+        } else if (sort2 < sort1) {
             return 1;
         }
         return s1.compareTo(s2);
     }
 
     // Evaluates the string
-    public static int dictSortEval(String search, String s){
-        if (s.equals(search)){
+    public static int dictSortEval(String search, String s) {
+        if (s.equals(search)) {
             return 1;
-        } else if (s.startsWith(search + " ")){
+        } else if (s.startsWith(search + " ")) {
             return 2;
-        } else if (s.startsWith(search)){
+        } else if (s.startsWith(search)) {
             return 3;
-        } else if (s.contains(" " + search + " ") || s.endsWith(" " + search)){
+        } else if (s.contains(" " + search + " ") || s.endsWith(" " + search)) {
             return 4;
         }
         return 5;
@@ -265,15 +235,15 @@ public class WordList {
     // language 'dest' for all /\b#{search}\b*/
     // Returns a map of words with LiftCaches
     public Map<String, LiftCache> searchExamples(String searchOrig, String dest) {
-        String search = Language.deAccent(searchOrig);
+        String search = deAccent(searchOrig);
         Map<String, LiftCache> result = new TreeMap<String, LiftCache>();
 
         String regex = ".*\\b" + search + "\\b.*";
         for (Map.Entry<String, LiftCache> entry :
                 TranslationList.get(dest).entrySet()) {
             for (Lift.ExampleStr ex : entry.getValue().Senses.get(0).Examples) {
-                System.out.println("   " + Language.deAccent(ex.Example));
-                if (Language.deAccent(ex.Example).matches(regex)) {
+                System.out.println("   " + deAccent(ex.Example));
+                if (deAccent(ex.Example).matches(regex)) {
                     result.put(entry.getKey(), entry.getValue());
                 }
             }
@@ -284,9 +254,10 @@ public class WordList {
     // Searches a word from the dest-language and returns the source-
     // language for all /#{search}*/
     public Map<String, LiftCache> searchWordSource(String searchOrig, String source) {
-        final String search = Language.deAccent(searchOrig);
+        final String search = deAccent(searchOrig);
         Comparator<String> dictionarySort = new Comparator<String>() {
-            @Override public int compare(String s1, String s2) {
+            @Override
+            public int compare(String s1, String s2) {
                 return WordList.dictSort(search, s1, s2);
             }
         };
@@ -297,12 +268,12 @@ public class WordList {
         } else {
             Pattern reg = Pattern.compile(".*\\b" + search + ".*", Pattern.CASE_INSENSITIVE);
             Log.i("searchWordSource", search + " for language: " + source);
-            for (Map.Entry<String, LiftCache> entry: tl.entrySet()){
+            for (Map.Entry<String, LiftCache> entry : tl.entrySet()) {
                 List<String> results = entry.getValue().matchesSenses(reg);
-                if (results.size() > 0){
-                    for (String res: results){
+                if (results.size() > 0) {
+                    for (String res : results) {
                         String word = res;
-                        while (result.containsKey(word)){
+                        while (result.containsKey(word)) {
                             word += " ";
                         }
                         result.put(word, entry.getValue());
@@ -311,35 +282,6 @@ public class WordList {
             }
         }
         return result;
-    }
-
-    // Searches for available languages - supposes that first 'entry' with a
-    // 'lexical-unit' has all languages in either 'sense/gloss' or 'sense/definition'
-    public List<String> getLanguages() {
-        if (Languages != null) {
-            return Languages;
-        }
-        Languages = new ArrayList<String>();
-        if (lift.entry != null && lift.entry.size() > 0) {
-            Lift.Entry.LexicalUnit lu = lift.entry.get(0).lexicalUnit;
-            if (lu != null && lu.form != null) {
-                Languages.add(lu.form.lang);
-            }
-            Lift.Entry.Sense sense = lift.entry.get(0).sense.get(0);
-            if (sense != null) {
-                for (Lift.Entry.Sense.Gloss g : sense.gloss) {
-                    Languages.add(g.lang);
-                }
-            }
-        }
-        // We suppose the first language is the base language
-        LanguageBase = Languages.remove(0);
-        return Languages;
-    }
-
-    // Returns the full name of the language
-    public static String langToFull(String lang) {
-        return Language.langToFull(lang);
     }
 
     // Checks if any Right-to-Left characters are present
@@ -351,5 +293,21 @@ public class WordList {
             }
         }
         return false;
+    }
+
+    // Remove all accents from string.
+    public static String deAccent(String str) {
+        if (str == null) {
+            return "";
+        }
+        String nfdNormalizedString = Normalizer.normalize(str.toLowerCase(), Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String ret = pattern.matcher(nfdNormalizedString).replaceAll("");
+        ret = ret.replaceAll("[()]", "");
+        ret = Pattern.compile("[\\p{P}\\p{Mn}]").matcher(ret).replaceAll("");
+        ret = ret.replaceAll("ŋ", "n");
+        ret = ret.replaceAll("œ", "oe");
+        ret = ret.trim();
+        return ret;
     }
 }

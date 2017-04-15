@@ -32,7 +32,19 @@ public class LiftCacheDefinition implements Serializable {
     public String ExamplesString() {
         List<String> examplesList = new ArrayList<String>();
         for (Lift.ExampleStr ex : Examples) {
-            examplesList.add(ex.Example + " -> " + ex.Translation);
+            examplesList.add(String.format("%s -> %s", ex.Example, ex.Translation));
+        }
+        return LiftCache.concatList(examplesList);
+    }
+
+    // Returns the examples in a list, but colored
+    public String ExamplesString(Languages l) {
+        List<String> examplesList = new ArrayList<String>();
+        for (Lift.ExampleStr ex : Examples) {
+            examplesList.add(new ColorText().
+                    addTextColor(ex.Example, l.Src().Color).
+                    addText(" -> ").
+                    addTextColor(ex.Translation, l.Dst().Color).result);
         }
         return LiftCache.concatList(examplesList);
     }

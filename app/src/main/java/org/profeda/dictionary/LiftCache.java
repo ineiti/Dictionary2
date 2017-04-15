@@ -1,14 +1,12 @@
 package org.profeda.dictionary;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -22,7 +20,7 @@ public class LiftCache implements Serializable {
     public String Original;
     public String Pronunciation;
     public String Searchable;
-    public String RefArab;
+    public String RefTudaga;
     public String BaseForm;
     public List<String> SearchableSenses;
     public List<String> Cross;
@@ -36,8 +34,18 @@ public class LiftCache implements Serializable {
                 e.lexicalUnit.form.text != null) {
             Original = e.getOriginal();
             Pronunciation = e.getPronunciation();
-            if (e.refArab != null) {
-                RefArab = e.refArab.value;
+            if (e.relation != null) {
+                for (Lift.Entry.Relation r : e.relation) {
+                    if (r.type.equals("RefTudaga")) {
+                        Lift.Entry rt = lift.findById(r.ref);
+                        if (rt == null) {
+                            System.out.println("Didn't find " + e.getOriginal() + ":" + r.ref);
+                        } else {
+                            RefTudaga = rt.getOriginal();
+                            System.out.println("Found RefTudaga " + e.getOriginal() + "->" + RefTudaga);
+                        }
+                    }
+                }
             }
             // Add all cross-references
             Cross = new ArrayList<String>();
@@ -62,10 +70,10 @@ public class LiftCache implements Serializable {
                     }
                 }
             }
-            Searchable = Language.deAccent(Original);
+            Searchable = WordList.deAccent(Original);
             SearchableSenses = new ArrayList<>();
             for (LiftCacheDefinition def : Senses) {
-                SearchableSenses.add(Language.deAccent(def.GlossDef()));
+                SearchableSenses.add(WordList.deAccent(def.GlossDef()));
             }
         }
     }
@@ -115,8 +123,8 @@ public class LiftCache implements Serializable {
                 "\nCross reference: " + Cross +
                 "\nDefinitions: " + SensesToString() +
                 "\n";
-        if (RefArab != null) {
-            ret += "Refarab: " + RefArab + "\n";
+        if (RefTudaga != null) {
+            ret += "Refarab: " + RefTudaga + "\n";
         }
         return ret;
     }
@@ -145,7 +153,7 @@ public class LiftCache implements Serializable {
     }
 
     // Converts a list of strings to a numbered list if there are
-    // more than 1 entries, else shows only the single entry. If
+    // more than 1 lang, else shows only the single entry. If
     // no entry is present, shows the alternative text or nothing
     // if that one is emtpy
     public static String concatList(List<String> entries) {
@@ -157,11 +165,14 @@ public class LiftCache implements Serializable {
         } else {
             int nbr = 1;
             for (String e : entries) {
-                ret.add(String.valueOf(nbr) + ": " + e);
+                ColorText line = new ColorText("");
+                line.addTextColor(Integer.toString(nbr), "#ff8888");
+                line.addText(": " + e);
+                ret.add(line.result);
                 nbr++;
             }
         }
-        return TextUtils.join("\n", ret);
+        return TextUtils.join("<br>", ret);
     }
 
 
@@ -169,7 +180,7 @@ public class LiftCache implements Serializable {
             throws IOException {
         out.writeObject(Original);
         out.writeObject(Pronunciation);
-        out.writeObject(RefArab);
+        out.writeObject(RefTudaga);
         out.writeObject(Cross);
         out.writeObject(Senses);
         out.writeObject(Searchable);
@@ -180,7 +191,7 @@ public class LiftCache implements Serializable {
             throws IOException, ClassNotFoundException {
         Original = (String) in.readObject();
         Pronunciation = (String) in.readObject();
-        RefArab = (String) in.readObject();
+        RefTudaga = (String) in.readObject();
         Cross = (List<String>) in.readObject();
         Senses = (List<LiftCacheDefinition>) in.readObject();
         Searchable = (String)in.readObject();

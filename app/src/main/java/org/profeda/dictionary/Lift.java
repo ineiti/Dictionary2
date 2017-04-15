@@ -108,8 +108,6 @@ public class Lift {
         public List<Trait> trait;
         @Element(required = false)
         public Field field;
-        @Element(required = false)
-        public RefArab refArab;
         @ElementList(inline = true, required = false)
         public List<Pronunciation> pronunciation;
         @ElementList(inline = true, required = false)
@@ -384,12 +382,6 @@ public class Lift {
             public String order;
             @ElementList(inline = true, required = false)
             public List<Trait> trait;
-        }
-
-        @Root
-        public static class RefArab {
-            @Attribute
-            public String value;
         }
 
         @Root

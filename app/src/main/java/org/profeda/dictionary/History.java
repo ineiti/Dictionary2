@@ -12,12 +12,12 @@ import java.util.List;
 public class History {
     List<HistoryEntry> entries;
 
-    public History(int lang){
+    public History(Languages lang){
         entries = new ArrayList<>();
         addItem(lang);
     }
 
-    public void addItem(int lang){
+    public void addItem(Languages lang){
         // Check if the last two are the same
         int len = entries.size();
         if (len >= 2){
@@ -30,7 +30,7 @@ public class History {
         if (len >= 1 && entries.get(len-1).text.equals("")){
             entries.remove(len-1);
         }
-        entries.add(new HistoryEntry(lang));
+        entries.add(new HistoryEntry(lang.GetDirection()));
     }
 
     public void setText(String t){

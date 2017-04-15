@@ -7,5 +7,5 @@ public class TranslationItem {
     String source;
     String translation;
     String example;
-    String refarab;
+    String reftudaga;
 }
