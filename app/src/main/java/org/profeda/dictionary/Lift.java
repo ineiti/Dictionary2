@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +51,12 @@ public class Lift {
 
     // Searches for an entry with id
     public Entry findById(String id) {
+        // Lift stores some references with accents as "^" + "u", while it stores the
+        // reference-ids themselves as "û"...
+        String nid = Normalizer.normalize(id, Normalizer.Form.NFC);
         for (Entry e : entry) {
-            if (e.id.equals(id)) {
+            String neid = Normalizer.normalize(e.id, Normalizer.Form.NFC);
+            if (neid.equals(nid)) {
                 return e;
             }
         }

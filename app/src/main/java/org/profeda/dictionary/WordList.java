@@ -120,6 +120,7 @@ public class WordList {
         }
         TranslationList = new HashMap<String, SortedMap<String, LiftCache>>();
         for (String lang : l.LiftList()) {
+//            System.out.println("Language: " + lang.toString());
             SortedMap<String, LiftCache> tle = new TreeMap<>();
             for (Lift.Entry e : lift.entry) {
                 if (e.lexicalUnit != null) {

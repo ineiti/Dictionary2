@@ -42,6 +42,15 @@ public class LiftTest {
     }
 
     @Test
+    public void testId() throws Exception{
+        loadWholeFile();
+        Map<String, LiftCache> results = wordList.searchWord("kowus", "tuq");
+        LiftCache result = results.get("kowus");
+        System.out.println("RefTudaga is: " + result.RefTudaga);
+        assertTrue(result.RefTudaga.contains("mûyi"));
+    }
+
+    @Test
     public void testLiftLoad() throws Exception {
         loadWholeFile();
         System.out.println("File is loaded");

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.profeda.dictionary.Translate.wordList;
+
 /**
  * Holds one entry for the LiftCache for easy serialisation
  * Only for a translation to a given language
@@ -34,7 +36,7 @@ public class LiftCache implements Serializable {
                 e.lexicalUnit.form.text != null) {
             Original = e.getOriginal();
             Pronunciation = e.getPronunciation();
-            if (e.relation != null) {
+            if (e.relation != null && tr == "tuq") {
                 for (Lift.Entry.Relation r : e.relation) {
                     if (r.type.equals("RefTudaga")) {
                         Lift.Entry rt = lift.findById(r.ref);
@@ -42,7 +44,7 @@ public class LiftCache implements Serializable {
                             System.out.println("Didn't find " + e.getOriginal() + ":" + r.ref);
                         } else {
                             RefTudaga = rt.getOriginal();
-                            System.out.println("Found RefTudaga " + e.getOriginal() + "->" + RefTudaga);
+//                            System.out.println("Found RefTudaga " + e.getOriginal() + "->" + RefTudaga);
                         }
                     }
                 }
